@@ -21,10 +21,10 @@ Por que esse requisito existe?
 
 ---
 
-## ✔ Critérios de Aceitação
-- [ ] Critério 1  
-- [ ] Critério 2  
-- [ ] Critério 3  
+## Mudança em qual perfil?
+- [ ] Gerente
+- [ ] Motorista  
+
 
 ---
 
