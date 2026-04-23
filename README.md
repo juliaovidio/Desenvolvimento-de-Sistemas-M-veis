@@ -59,22 +59,6 @@ npm start
 python app.py
 ```
 
-## 🔐 Segurança
-
-- Autenticação por perfil de usuário
-- Controle de acesso por funcionalidade
-- Proteção de dados sensíveis
-- Registro de atividades no sistema
-
-## 📊 Fluxo Básico
-
-1. Gerente cadastra motoristas, veículos e cria rotas
-2. Motorista acessa o sistema e inicia a rota
-3. Sistema rastreia localização em tempo real
-4. Motorista pode atualizar status e reportar problemas
-5. Gerente acompanha tudo pelo dashboard
-6. Histórico fica registrado para análise
-
 ## 📁 Estrutura do Projeto
 
 ```
@@ -88,24 +72,3 @@ python app.py
 └── README.md             # Este arquivo
 ```
 
-## 🤝 Contribuindo
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-## 📝 Licença
-
-Este projeto está sob licença MIT. Veja o arquivo LICENSE para mais detalhes.
-
-## 📧 Contato
-
-**Desenvolvedor**: Júlia Ovídio  
-**Email**: [seu-email@example.com](mailto:seu-email@example.com)  
-**GitHub**: [@juliaovidio](https://github.com/juliaovidio)
-
----
-
-**Última atualização**: Abril de 2026
