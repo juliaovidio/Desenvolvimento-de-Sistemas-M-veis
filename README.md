@@ -1,89 +1,111 @@
 # 🚚 Sistema de Gestão para Transportadora
 
-## 📌 Sobre o Projeto
+Aplicação mobile desenvolvida para otimizar o controle operacional de rotas, motoristas, veículos e acompanhamento de entregas em tempo real.
 
-O Sistema de Gestão para Transportadora é uma aplicação desenvolvida para otimizar o controle de rotas, motoristas, veículos e acompanhamento de entregas em tempo real.  
+## 📋 Visão Geral
 
-O sistema possui dois perfis principais de acesso:
+O sistema oferece dois perfis de acesso principais:
+- **Motorista**: Acompanhamento de rotas, atualização de localização e reporte de ocorrências
+- **Gerente**: Gestão operacional, monitoramento em tempo real e relatórios
 
-- **Motorista**
-- **Gerente**
+## 🎯 Objetivos Principais
 
-Cada perfil possui funcionalidades específicas, garantindo organização, segurança e eficiência na operação da transportadora.
+- Centralizar o controle logístico de rotas e entregas
+- Permitir acompanhamento em tempo real das operações
+- Facilitar comunicação entre motorista e gerente
+- Registrar e organizar informações operacionais
 
----
+## ✨ Funcionalidades
 
-## 🎯 Objetivo
+| Gerente | Motorista |
+|---------|-----------|
+| Cadastro de motoristas e veículos | Login seguro |
+| Criação e atribuição de rotas | Acompanhamento de rota ativa |
+| Monitoramento em tempo real | Atualização de localização |
+| Dashboard operacional | Reporte de problemas |
+| Relatórios de atividades | Histórico de entregas |
 
-O principal objetivo do sistema é:
+## 🛠️ Tecnologias
 
-- Melhorar o controle logístico das rotas
-- Permitir acompanhamento em tempo real
-- Centralizar informações operacionais
-- Registrar ocorrências durante os trajetos
-- Facilitar a tomada de decisão do gerente
+- **Frontend**: React Native / Flutter
+- **Backend**: Node.js / Python
+- **Banco de Dados**: Supabase
+- **Autenticação**: Sistema seguro com controle de acesso por perfil
 
----
+## 🚀 Como Começar
 
+### Requisitos
+- Node.js v16+ (ou Python 3.8+)
+- Supabase (configurado)
+- Git
 
-## 🛠️ Funcionalidades Gerais
+### Instalação
 
-- Sistema de autenticação com controle de acesso por perfil
-- Monitoramento de localização
-- Registro de status de rota
-- Controle de veículos
-- Painel administrativo
-- Histórico de atividades
-- Relatórios operacionais
+```bash
+# Clone o repositório
+git clone https://github.com/juliaovidio/Desenvolvimento-de-Sistemas-M-veis.git
 
----
+# Instale as dependências
+npm install
+# ou
+pip install -r requirements.txt
 
-## 🗺️ Fluxo Básico de Funcionamento
+# Configure as variáveis de ambiente
+cp .env.example .env
 
-1. O gerente cadastra os motoristas, veículos e funcionários.
-2. O gerente cria uma rota e vincula ao motorista e veículo.
-3. O motorista acessa o sistema com seu login.
-4. O motorista e o gerente inicia a rota.
-5. Durante o trajeto, ele pode:
-   - Atualizar sua localização
-   - Alterar status da rota
-   - Relatar problemas
-6. O gerente acompanha tudo em tempo real pelo painel administrativo.
-7. Ao finalizar, o trajeto fica salvo no histórico.
-
----
+# Inicie a aplicação
+npm start
+# ou
+python app.py
+```
 
 ## 🔐 Segurança
 
-- Controle de acesso por nível de usuário
+- Autenticação por perfil de usuário
+- Controle de acesso por funcionalidade
 - Proteção de dados sensíveis
-- Restrição de funcionalidades conforme perfil
 - Registro de atividades no sistema
 
+## 📊 Fluxo Básico
+
+1. Gerente cadastra motoristas, veículos e cria rotas
+2. Motorista acessa o sistema e inicia a rota
+3. Sistema rastreia localização em tempo real
+4. Motorista pode atualizar status e reportar problemas
+5. Gerente acompanha tudo pelo dashboard
+6. Histórico fica registrado para análise
+
+## 📁 Estrutura do Projeto
+
+```
+├── docs/                 # Documentação
+├── src/                  # Código fonte
+│   ├── components/       # Componentes reutilizáveis
+│   ├── screens/          # Telas da aplicação
+│   ├── services/         # Serviços e APIs
+│   └── utils/            # Utilitários
+├── package.json          # Dependências
+└── README.md             # Este arquivo
+```
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📝 Licença
+
+Este projeto está sob licença MIT. Veja o arquivo LICENSE para mais detalhes.
+
+## 📧 Contato
+
+**Desenvolvedor**: Júlia Ovídio  
+**Email**: [seu-email@example.com](mailto:seu-email@example.com)  
+**GitHub**: [@juliaovidio](https://github.com/juliaovidio)
+
 ---
 
-
-## 📊 Benefícios do Sistema
-
-- Redução de falhas operacionais
-- Maior controle logístico
-- Transparência nas operações
-- Melhor comunicação entre motorista e gerente
-- Registro organizado de informações
-
----
-
-## 📎 Considerações Finais
-
-Este sistema foi projetado para oferecer uma solução simples, eficiente e segura para empresas do setor de transporte que desejam modernizar sua gestão operacional e acompanhar suas rotas de forma prática e organizada.
-
----
-
-
-
-
-
-
-
-
-
+**Última atualização**: Abril de 2026
