@@ -13,38 +13,24 @@
 
 **Pós-condições:**
 - Usuário está logado
-- Dashboard é exibido
+- Tela Principal é exibido
 
 **Fluxo Principal:**
 1. Usuário abre app
 2. Insere email e senha
 3. Sistema valida credenciais
-4. Sistema mostra dashboard
+4. Sistema mostra tela principal
 
 **Fluxos Alternativos / Exceções:**
 - FA01 — Senha incorreta: Sistema exibe erro
-- FA02 — Sem internet: Sistema mostra alerta
+- FA02 — Sem internet: não funciona
 
 **Relacionamentos:**
 - Include: Validar Credenciais
-- Extend: Recuperar Senha
 
 **Diagrama:**
-```plantuml
-@startuml UC01
-start
-:Abrir App;
-:Inserir Email/Senha;
-if (Válido?) then (Sim)
-  :Fazer Login;
-  :Mostrar Dashboard;
-  stop
-else (Não)
-  :Mostrar Erro;
-  end
-endif
-@enduml
-```
+<img width="267" height="337" alt="image" src="https://github.com/user-attachments/assets/9debc06f-1b28-412d-a837-933e09f05284" />
+
 
 ---
 
@@ -59,7 +45,6 @@ endif
 
 **Pós-condições:**
 - Motorista foi cadastrado
-- Email enviado ao motorista
 
 **Fluxo Principal:**
 1. Gerente clica em "Novo Motorista"
@@ -74,25 +59,10 @@ endif
 
 **Relacionamentos:**
 - Include: Validar Dados
-- Extend: Enviar Email
 
 **Diagrama:**
-```plantuml
-@startuml UC02
-start
-:Clicar Novo Motorista;
-:Preencher Formulário;
-if (Dados Válidos?) then (Sim)
-  :Salvar Motorista;
-  :Enviar Email;
-  :Mostrar Sucesso;
-  stop
-else (Não)
-  :Mostrar Erro;
-  end
-endif
-@enduml
-```
+<img width="242" height="337" alt="image" src="https://github.com/user-attachments/assets/ff7e42ea-e274-482a-a25f-788d2068b20c" />
+
 
 ---
 
@@ -108,11 +78,11 @@ endif
 
 **Pós-condições:**
 - Rota foi criada
-- Motorista foi notificado
+- Motorista foi notificado pela aba rotas
 
 **Fluxo Principal:**
 1. Gerente clica em "Nova Rota"
-2. Seleciona data da rota
+2. Seleciona status da rota
 3. Escolhe o motorista
 4. Adiciona pontos de entrega (endereço)
 5. Clica em confirmar
@@ -127,24 +97,8 @@ endif
 - Extend: Otimizar Rota
 
 **Diagrama:**
-```plantuml
-@startuml UC03
-start
-:Clicar Nova Rota;
-:Selecionar Data;
-:Escolher Motorista;
-:Adicionar Endereços;
-if (Salvar?) then (Sim)
-  :Criar Rota;
-  :Notificar Motorista;
-  :Mostrar Sucesso;
-  stop
-else (Não)
-  :Cancelar;
-  end
-endif
-@enduml
-```
+<img width="230" height="502" alt="image" src="https://github.com/user-attachments/assets/18ab9380-5421-4f07-beea-8181641d0afe" />
+
 
 ---
 
@@ -157,7 +111,7 @@ endif
 **Pré-condições:**
 - Rota foi criada
 - Motorista iniciou a rota
-- GPS ativado
+- GPS ativado ao entrar no app
 
 **Pós-condições:**
 - Posição é atualizada
@@ -165,13 +119,12 @@ endif
 
 **Fluxo Principal:**
 1. Motorista inicia rota
-2. GPS ativa e envia posição
+2. GPS ativa ao entrar no app e envia posição
 3. Gerente vê mapa com motorista
-4. Posição atualiza a cada 30 segundos
-5. Motorista vê próximo ponto
+4. Motorista vê próximo ponto
 
 **Fluxos Alternativos / Exceções:**
-- FA01 — GPS desativado: Sistema alerta
+- FA01 — GPS desativado: Não funciona
 - FA02 — Sem internet: Tenta reconectar
 
 **Relacionamentos:**
@@ -179,20 +132,8 @@ endif
 - Extend: Alertar Desvio
 
 **Diagrama:**
-```plantuml
-@startuml UC04
-start
-:Motorista Inicia Rota;
-:Ativar GPS;
-repeat
-  :Enviar Localização;
-  :Atualizar Mapa;
-  :Aguardar 30s;
-until (Rota Finalizada?)
-  :Salvar Histórico;
-  stop
-@enduml
-```
+<img width="203" height="453" alt="image" src="https://github.com/user-attachments/assets/c171e6c8-adb0-4abb-9692-e2d31ed143fc" />
+
 
 ---
 
@@ -208,7 +149,7 @@ until (Rota Finalizada?)
 
 **Pós-condições:**
 - Entrega registrada
-- Cliente notificado
+- Cliente registrado a entrega
 
 **Fluxo Principal:**
 1. Motorista chega no endereço
@@ -219,7 +160,7 @@ until (Rota Finalizada?)
 6. Confirma entrega
 
 **Fluxos Alternativos / Exceções:**
-- FA01 — Cliente não encontrado: Registra tentativa
+- FA01 — Cliente não encontrado: Registra falha
 - FA02 — Pacote danificado: Fotografa e relata
 
 **Relacionamentos:**
@@ -227,24 +168,8 @@ until (Rota Finalizada?)
 - Extend: Fotografar Evidência
 
 **Diagrama:**
-```plantuml
-@startuml UC05
-start
-:Chegar no Ponto;
-:Verificar Pacote;
-if (Pacote Íntegro?) then (Sim)
-  :Solicitar Assinatura;
-  :Capturar Assinatura;
-  :Confirmar Entrega;
-  :Notificar Cliente;
-  stop
-else (Não)
-  :Fotografar Dano;
-  :Relatar;
-  end
-endif
-@enduml
-```
+<img width="281" height="392" alt="image" src="https://github.com/user-attachments/assets/fbe77495-ece2-4e6a-8fa5-306c2315dead" />
+
 
 ---
 
@@ -265,31 +190,21 @@ endif
 **Fluxo Principal:**
 1. Motorista identifica problema
 2. Clica em "Reportar Problema"
-3. Seleciona tipo (acidente, trânsito, avaria)
-4. Descreve o problema
-5. Confirma envio
-6. Sistema notifica gerente
+3. Descreve o problema
+4. Confirma envio
+5. Sistema mostra ao gerente na aba relatos
 
 **Fluxos Alternativos / Exceções:**
 - FA01 — Sem internet: Salva localmente
-- FA02 — Problema crítico: Notifica automaticamente
+
 
 **Relacionamentos:**
 - Include: Localizar Motorista
 - Extend: Alertar Suporte
 
 **Diagrama:**
-```plantuml
-@startuml UC06
-start
-:Clicar Reportar Problema;
-:Selecionar Tipo;
-:Descrever;
-:Enviar;
-:Notificar Gerente;
-stop
-@enduml
-```
+<img width="188" height="303" alt="image" src="https://github.com/user-attachments/assets/11278e7b-5fa0-4ee5-89d8-e1914ea62cef" />
+
 
 ---
 
@@ -304,41 +219,23 @@ stop
 - Há dados registrados
 
 **Pós-condições:**
-- Relatório foi gerado
-- Pode ser exportado em PDF
+- Relatório foi gerado na aba vizualizar
 
 **Fluxo Principal:**
-1. Gerente clica em "Relatórios"
-2. Seleciona tipo (Rotas, Entregas)
-3. Define período (data início e fim)
-4. Clica em gerar
-5. Sistema mostra gráficos e tabelas
+1. Gerente clica em "Vizualizar"
+2. Seleciona o status
+3. Clica em filtrar
+5. Sistema mostra os cards com as informações
 
 **Fluxos Alternativos / Exceções:**
 - FA01 — Sem dados: Sistema mostra mensagem
-- FA02 — Exportar: Gera PDF e baixa
 
 **Relacionamentos:**
 - Include: Coletar Dados
-- Extend: Exportar PDF
 
 **Diagrama:**
-```plantuml
-@startuml UC07
-start
-:Clicar Relatórios;
-:Selecionar Tipo;
-:Definir Período;
-:Gerar Relatório;
-:Mostrar Gráficos;
-if (Exportar?) then (Sim)
-  :Gerar PDF;
-else (Não)
-  :Visualizar;
-endif
-stop
-@enduml
-```
+<img width="190" height="303" alt="image" src="https://github.com/user-attachments/assets/9e009b81-65ab-42df-8525-daf1a78fa8e5" />
+
 
 ---
 
@@ -350,46 +247,29 @@ stop
 
 **Pré-condições:**
 - Rota iniciada
-- GPS ativo
+- GPS ativo ao entrar app
 - Internet disponível
 
 **Pós-condições:**
-- Posição salva no servidor
+- Posição salva no servidor a ultima localização
 - Gerente vê em tempo real
 
 **Fluxo Principal:**
 1. Motorista inicia rota
 2. GPS captura coordenadas
-3. Sistema envia para servidor a cada 30s
+3. Sistema envia para servidor a cada entrada no app
 4. Servidor armazena
 5. Mapa atualiza com nova posição
 
 **Fluxos Alternativos / Exceções:**
-- FA01 — GPS desativado: Alerta motorista
-- FA02 — Sem internet: Armazena e envia depois
+- FA01 — GPS desativado: Não funciona
 
 **Relacionamentos:**
 - Include: Capturar GPS
-- Extend: Modo Econômico
 
 **Diagrama:**
-```plantuml
-@startuml UC08
-start
-:Iniciar Rota;
-repeat
-  :Capturar GPS;
-  if (Internet?) then (Sim)
-    :Enviar Posição;
-  else (Não)
-    :Armazenar Local;
-  endif
-  :Atualizar Mapa;
-  :Aguardar 30s;
-until (Rota Finalizada?)
-  stop
-@enduml
-```
+<img width="233" height="343" alt="image" src="https://github.com/user-attachments/assets/34449d37-ce8f-4472-82a2-d57b4f685510" />
+
 
 ---
 
@@ -408,11 +288,11 @@ until (Rota Finalizada?)
 - Detalhes acessados
 
 **Fluxo Principal:**
-1. Usuário clica em "Histórico"
+1. Usuário clica em "Finalizados"
 2. Sistema lista entregas
 3. Usuário seleciona uma entrega
 4. Sistema mostra detalhes e assinatura
-5. Usuário pode visualizar/baixar comprovante
+5. Usuário pode visualizar
 
 **Fluxos Alternativos / Exceções:**
 - FA01 — Sem entregas: Mensagem de vazio
@@ -420,24 +300,10 @@ until (Rota Finalizada?)
 
 **Relacionamentos:**
 - Include: Filtrar Histórico
-- Extend: Baixar Comprovante
 
 **Diagrama:**
-```plantuml
-@startuml UC09
-start
-:Clicar Histórico;
-:Listar Entregas;
-:Selecionar Entrega;
-:Mostrar Detalhes;
-if (Baixar?) then (Sim)
-  :Gerar Comprovante;
-else (Não)
-  :Visualizar;
-endif
-stop
-@enduml
-```
+<img width="147" height="358" alt="image" src="https://github.com/user-attachments/assets/d3183cd6-c9d3-4ab5-86ec-855d16a42221" />
+
 
 ---
 
@@ -449,47 +315,25 @@ stop
 
 **Pré-condições:**
 - Evento ocorreu (problema, atraso, etc)
-- Gerente permitiu notificações
 
 **Pós-condições:**
-- Notificação foi entregue
+- Evento salvo
 - Gerente pode agir
 
 **Fluxo Principal:**
 1. Sistema detecta evento
-2. Avalia críticidade
-3. Envia notificação push
-4. Gerente recebe
-5. Clica na notificação
-6. Sistema abre contexto
+2. Gerente recebe
+3. Sistema abre contexto na aba falhas
 
 **Fluxos Alternativos / Exceções:**
-- FA01 — Gerente offline: Envia email
-- FA02 — Erro de envio: Tenta novamente
+- FA01 — Erro de envio: Tenta novamente
 
 **Relacionamentos:**
 - Include: Detectar Evento
-- Extend: Enviar Email
 
 **Diagrama:**
-```plantuml
-@startuml UC10
-start
-:Sistema Detecta Evento;
-if (Crítico?) then (Sim)
-  :Prioridade Alta;
-else (Não)
-  :Prioridade Normal;
-endif
-if (Gerente Online?) then (Sim)
-  :Enviar Push;
-else (Não)
-  :Enviar Email;
-endif
-:Registrar;
-stop
-@enduml
-```
+<img width="266" height="367" alt="image" src="https://github.com/user-attachments/assets/bd736c81-935e-4af2-9794-c20021e32f91" />
+
 
 ---
 
