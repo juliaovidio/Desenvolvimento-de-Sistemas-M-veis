@@ -1,4 +1,4 @@
-# 📋 Documentação dos Casos de Uso
+# Documentação dos Casos de Uso
 
 ---
 
@@ -337,7 +337,7 @@
 
 ---
 
-## 📊 Resumo
+## Resumo
 
 | UC | Nome | Ator |
 |---|---|---|
@@ -351,3 +351,9 @@
 | UC08 | Atualizar Localização | Motorista, Sistema |
 | UC09 | Histórico | Motorista, Gerente |
 | UC10 | Notificar | Sistema, Gerente |
+
+
+## Diagrama geral 
+<img width="594" height="570" alt="image" src="https://github.com/user-attachments/assets/3cbcb41c-9f29-4f08-8d3d-dfe3e50a10cf" />
+
+
