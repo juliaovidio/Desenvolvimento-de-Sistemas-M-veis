@@ -36,30 +36,8 @@
 - Extend: Autenticação Biométrica
 
 **Diagrama de Atividades:**
-```plantuml
-@startuml UC01_Autenticar_Usuario
-start
-:Abrir Aplicação;
-:Exibir Tela de Login;
-:Usuário Insere Credenciais;
-if (Biometria Disponível?) then (Sim)
-  :Optar por Autenticação Biométrica;
-  :Capturar Dados Biométricos;
-else (Não)
-  :Usar Email/Senha;
-endif
-if (Validar Credenciais) then (Válidas)
-  :Gerar Token de Sessão;
-  :Redirecionar para Dashboard;
-  :Exibir Menu Principal;
-  stop
-else (Inválidas)
-  :Exibir Erro de Autenticação;
-  :Permitir Nova Tentativa;
-  end
-endif
-@enduml
-```
+<img width="572" height="894" alt="image" src="https://github.com/user-attachments/assets/11296744-6a95-41ac-9540-d81ce51095eb" />
+
 
 ---
 
@@ -99,32 +77,8 @@ endif
 - Extend: Envio de Email
 
 **Diagrama de Atividades:**
-```plantuml
-@startuml UC02_Cadastrar_Motorista
-start
-:Gerente Acessa Cadastro de Motoristas;
-:Clica em Novo Motorista;
-:Exibir Formulário;
-:Preencher Dados Pessoais;
-:Inserir Dados da CNH;
-if (Validar CPF) then (Válido)
-  if (Validar CNH) then (Válida)
-    :Associar Veículo;
-    :Confirmar Cadastro;
-    :Salvar no Banco de Dados;
-    :Enviar Email de Confirmação;
-    :Exibir Mensagem de Sucesso;
-    stop
-  else (Inválida)
-    :Exibir Erro: CNH Vencida;
-    end
-  endif
-else (Duplicado)
-  :Exibir Erro: CPF Já Existe;
-  end
-endif
-@enduml
-```
+<img width="570" height="716" alt="image" src="https://github.com/user-attachments/assets/e5bfe2ef-807c-471c-804b-f00ed39e3434" />
+
 
 ---
 
@@ -165,30 +119,8 @@ endif
 - Extend: Otimizar Rota
 
 **Diagrama de Atividades:**
-```plantuml
-@startuml UC03_Criar_Rota_Entrega
-start
-:Gerente Acessa Gerenciar Rotas;
-:Clica em Nova Rota;
-:Exibir Formulário;
-:Inserir Data da Rota;
-:Selecionar Motorista;
-:Adicionar Pontos de Entrega;
-:Calcular Distância e Tempo;
-if (Cálculo Bem-sucedido?) then (Sim)
-  :Exibir Preview da Rota;
-  :Gerente Confirma;
-  :Salvar Rota;
-  :Notificar Motorista;
-  :Exibir Confirmação;
-  stop
-else (Não)
-  :Exibir Erro de Cálculo;
-  :Permitir Ajustes Manuais;
-  end
-endif
-@enduml
-```
+<img width="341" height="778" alt="image" src="https://github.com/user-attachments/assets/aa0bca10-b68f-4a2f-8a48-f5067d241311" />
+
 
 ---
 
@@ -229,29 +161,9 @@ endif
 - Extend: Alerta de Desvio
 
 **Diagrama de Atividades:**
-```plantuml
-@startuml UC04_Acompanhar_Rota_Tempo_Real
-start
-:Motorista Inicia Rota;
-:Ativar Rastreamento GPS;
-repeat
-  :Obter Localização GPS;
-  :Enviar para Servidor;
-  :Gerente Visualiza Mapa;
-  :Atualizar Posição em Tempo Real;
-  if (Motorista Perto do Ponto?) then (Sim)
-    :Enviar Alerta;
-  endif
-  if (Desvio Detectado?) then (Sim)
-    :Notificar Gerente;
-  endif
-  :Aguardar 30 Segundos;
-until (Rota Finalizada?)
-  :Registrar Histórico;
-  :Exibir Resumo da Rota;
-  stop
-@enduml
-```
+<img width="255" height="962" alt="image" src="https://github.com/user-attachments/assets/6d9cc285-9383-45b6-bf01-0564d0d3c32f" />
+
+
 
 ---
 
