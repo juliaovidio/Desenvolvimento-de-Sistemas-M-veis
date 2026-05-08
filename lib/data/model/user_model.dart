@@ -1,4 +1,4 @@
-class UserModel {
+﻿class UserModel {
   final int id; // 🔥 ADICIONAMOS O ID AQUI
   final String email;
   final String senhaHash;
@@ -15,7 +15,7 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'], //  (puxando da coluna 'id' do banco)
+      id: json['id'], // 🔥 E AQUI (puxando da coluna 'id' do banco)
       email: json['email'],
       senhaHash: json['senha_hash'],
       cargo: json['cargo'],

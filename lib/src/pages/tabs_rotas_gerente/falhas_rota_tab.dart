@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 
@@ -21,7 +21,7 @@ class _FalhasRotaTabState extends State<FalhasRotaTab> {
   }
 
   // ==========================================
-  // CARREGAR TODAS AS FALHAS (TODOS OS MOTORISTAS)
+  // CARREGAR TODAS AS FALHAS (LÓGICA ORIGINAL MANTIDA)
   // ==========================================
   Future<void> _carregarTodasAsFalhas() async {
     setState(() => _isLoading = true);
@@ -127,7 +127,7 @@ class _FalhasRotaTabState extends State<FalhasRotaTab> {
   }
 
   // ==========================================
-  // FORMATAR DATA
+  // FORMATAR DATA (LÓGICA ORIGINAL MANTIDA)
   // ==========================================
   String _formatarData(String dataIso) {
     try {
@@ -139,7 +139,7 @@ class _FalhasRotaTabState extends State<FalhasRotaTab> {
   }
 
   // ==========================================
-  // EXPANDIR FOTO
+  // EXPANDIR FOTO (LÓGICA ORIGINAL MANTIDA)
   // ==========================================
   void _expandirFoto(String? fotoUrl) {
     if (fotoUrl == null) {
@@ -180,7 +180,7 @@ class _FalhasRotaTabState extends State<FalhasRotaTab> {
   }
 
   // ==========================================
-  // INTERFACE
+  // INTERFACE (COM NOVO DESIGN)
   // ==========================================
   @override
   Widget build(BuildContext context) {
@@ -212,37 +212,38 @@ class _FalhasRotaTabState extends State<FalhasRotaTab> {
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
+        borderRadius: BorderRadius.circular(16), // Borda mais suave
+        border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🎯 Cabeçalho com Rota
+          // 🎯 Cabeçalho com Rota (Design Modernizado)
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: const Color(0xFFF1F5F9), // Fundo cinza azulado claro
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
               ),
+              border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
             ),
             child: Row(
               children: [
-                // 🔢 Número da parada em destaque
+                // 🔢 Número da parada em destaque (estilo limpo)
                 Container(
-                  width: 35,
-                  height: 35,
-                  decoration: BoxDecoration(
-                    color: Colors.red[400],
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFDC2626), // Vermelho falha
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -251,6 +252,7 @@ class _FalhasRotaTabState extends State<FalhasRotaTab> {
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
                     ),
                   ),
@@ -262,7 +264,8 @@ class _FalhasRotaTabState extends State<FalhasRotaTab> {
                     falha['descricao_rota'] ?? '-',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: 15,
+                      color: Color(0xFF0F172A),
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -272,9 +275,9 @@ class _FalhasRotaTabState extends State<FalhasRotaTab> {
             ),
           ),
 
-          // 👤 Dados do Motorista
+          // 👤 Dados do Motorista e Veículo
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -285,18 +288,19 @@ class _FalhasRotaTabState extends State<FalhasRotaTab> {
                       const TextSpan(
                         text: 'Motorista: ',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                          fontSize: 14,
                         ),
                       ),
                       TextSpan(
                         text: falha['nome_motorista'] ?? '-',
-                        style: TextStyle(color: Colors.grey[700]),
+                        style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
 
                 // Veículo
                 RichText(
@@ -305,34 +309,35 @@ class _FalhasRotaTabState extends State<FalhasRotaTab> {
                       const TextSpan(
                         text: 'Veículo: ',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                          fontSize: 14,
                         ),
                       ),
                       TextSpan(
-                        text:
-                            '${falha['veiculo_descricao'] ?? '-'} = ${falha['veiculo_placa'] ?? '-'}',
-                        style: TextStyle(color: Colors.grey[700]),
+                        text: '${falha['veiculo_descricao'] ?? '-'} = ${falha['veiculo_placa'] ?? '-'}',
+                        style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
 
-                // Descrição do problema
+                // Descrição do problema (Exatamente como estava no seu código)
                 RichText(
                   text: TextSpan(
                     children: [
                       const TextSpan(
                         text: 'Descrição do problema: ',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                          fontSize: 14,
                         ),
                       ),
                       TextSpan(
                         text: falha['descricao_falha'] ?? '-',
-                        style: TextStyle(color: Colors.grey[700]),
+                        style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
                       ),
                     ],
                   ),
@@ -341,14 +346,14 @@ class _FalhasRotaTabState extends State<FalhasRotaTab> {
             ),
           ),
 
-          // 📍 Parada e Dados da Entrega
+          // 📍 Parada e Dados da Entrega (Design em Bloco)
           Container(
-            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
-              border: Border(
-                top: BorderSide(color: Colors.grey[200]!),
-              ),
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -358,82 +363,54 @@ class _FalhasRotaTabState extends State<FalhasRotaTab> {
                   'Parada ${falha['ordem_parada']}°:',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                    fontSize: 14,
+                    color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 8),
-
-                // Endereço
-                _buildParadaRow(
-                  'Empresa/loja:',
-                  falha['empresa_loja'] ?? '-',
-                ),
-                _buildParadaRow(
-                  'Responsável:',
-                  falha['responsavel'] ?? '-',
-                ),
-                _buildParadaRow(
-                  'CNPJ/CPF:',
-                  falha['cpf_cnpj'] ?? '-',
-                ),
-                _buildParadaRow(
-                  'Informações da carga:',
-                  falha['info_carga'] ?? '-',
-                ),
-                _buildParadaRow(
-                  'Bairro:',
-                  falha['bairro'] ?? '-',
-                ),
-                _buildParadaRow(
-                  'Rua:',
-                  falha['rua'] ?? '-',
-                ),
-                _buildParadaRow(
-                  'Número:',
-                  falha['numero'] ?? '-',
-                ),
-                _buildParadaRow(
-                  'Endereço:',
-                  '${falha['cidade'] ?? '-'} - ${falha['cep'] ?? '-'}',
-                ),
-                _buildParadaRow(
-                  'Cidade:',
-                  '${falha['cidade'] ?? '-'}',
-                ),
-                _buildParadaRow(
-                  'Telefone:',
-                  falha['telefone_empresa'] ?? '-',
-                ),
+                const SizedBox(height: 12),
+                
+                // Exatamente a mesma ordem e texto do seu código original
+                _buildParadaRow('Empresa/loja:', falha['empresa_loja'] ?? '-'),
+                _buildParadaRow('Responsável:', falha['responsavel'] ?? '-'),
+                _buildParadaRow('CNPJ/CPF:', falha['cpf_cnpj'] ?? '-'),
+                _buildParadaRow('Informações da carga:', falha['info_carga'] ?? '-'),
+                _buildParadaRow('Bairro:', falha['bairro'] ?? '-'),
+                _buildParadaRow('Rua:', falha['rua'] ?? '-'),
+                _buildParadaRow('Número:', falha['numero'] ?? '-'),
+                _buildParadaRow('Endereço:', '${falha['cidade'] ?? '-'} - ${falha['cep'] ?? '-'}'),
+                _buildParadaRow('Cidade:', '${falha['cidade'] ?? '-'}'),
+                _buildParadaRow('Telefone:', falha['telefone_empresa'] ?? '-'),
               ],
             ),
           ),
 
           // 📸 Foto e Data
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Foto
+                // Foto (Com visual mais arredondado e borda leve)
                 if (falha['foto_url'] != null)
                   GestureDetector(
                     onTap: () => _expandirFoto(falha['foto_url']),
                     child: Container(
                       width: double.infinity,
-                      height: 150,
+                      height: 160,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                         child: Image.network(
                           falha['foto_url'],
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Icon(
                               Icons.image_not_supported,
-                              color: Colors.grey[600],
+                              color: Colors.grey.shade400,
+                              size: 40,
                             );
                           },
                         ),
@@ -443,25 +420,37 @@ class _FalhasRotaTabState extends State<FalhasRotaTab> {
                 else
                   Container(
                     width: double.infinity,
-                    height: 150,
+                    height: 160,
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
                     ),
-                    child: Icon(
-                      Icons.image,
-                      color: Colors.grey[600],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.image_outlined, color: Colors.grey.shade400, size: 40),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Sem foto',
+                          style: TextStyle(color: Colors.grey.shade500),
+                        )
+                      ],
                     ),
                   ),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
 
                 // Data
-                Text(
-                  'Data: ${_formatarData(falha['criado_em'] ?? '')}',
-                  style: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: 12,
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    'Data: ${_formatarData(falha['criado_em'] ?? '')}',
+                    style: TextStyle(
+                      color: Colors.grey.shade500,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
@@ -479,21 +468,22 @@ class _FalhasRotaTabState extends State<FalhasRotaTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 120,
+            width: 130, // Um pouquinho maior para evitar quebra em telas menores
             child: Text(
               label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 12,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                color: Colors.grey.shade700,
               ),
             ),
           ),
           Expanded(
             child: Text(
               valor,
-              style: TextStyle(
-                color: Colors.grey[700],
-                fontSize: 12,
+              style: const TextStyle(
+                color: Colors.black87,
+                fontSize: 13,
               ),
             ),
           ),

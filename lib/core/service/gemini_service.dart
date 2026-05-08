@@ -1,10 +1,10 @@
-import 'package:http/http.dart' as http;
+﻿import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class GeminiService {
   static const String apiKey = 'AIzaSyCQ77Yq-jgj1tMlloYDcZMQwNrhP9cp3W4';
   static const String apiUrl =
-       'https://generativelanguage.googleapis.com/v1beta/models/gemini-latest:generateContent?key=$apiKey';
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey';
 
   // ==========================================
   // ENVIAR PERGUNTA PARA GEMINI

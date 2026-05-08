@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PendingTab extends StatefulWidget {
@@ -21,9 +21,6 @@ class _PendingTabState extends State<PendingTab> {
   final supabase = Supabase.instance.client;
   bool _isLoading = true;
   List<Map<String, dynamic>> rotas = [];
-  
-  // 🟢 VARIÁVEL QUE CONTROLA AS ABAS DO MENU INFERIOR
-  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -109,7 +106,7 @@ class _PendingTabState extends State<PendingTab> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Confirmar Início', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00214B))),
+        title: const Text('Confirmar Início', style: TextStyle(fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 0, 0))),
         content: const Text('Deseja realmente iniciar esta rota de entregas?'),
         actions: [
           TextButton(
@@ -176,78 +173,10 @@ class _PendingTabState extends State<PendingTab> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
-      
-      // Botão do Gemini foi removido daqui!
-      
-      // 🔵 MENU INFERIOR FUNCIONANDO (Controlando as telas)
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
-          labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>(
-            (Set<MaterialState> states) => states.contains(MaterialState.selected)
-                ? const TextStyle(color: Color(0xFF00214B), fontSize: 12, fontWeight: FontWeight.bold)
-                : const TextStyle(color: Colors.grey, fontSize: 12),
-          ),
-        ),
-        child: NavigationBar(
-          backgroundColor: Colors.white,
-          indicatorColor: const Color(0xFFEFF6FF),
-          selectedIndex: _selectedIndex, 
-          onDestinationSelected: (int index) {
-            setState(() {
-              _selectedIndex = index; // 🟢 Muda a aba ao clicar
-            });
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.pending_actions, color: Colors.grey),
-              selectedIcon: Icon(Icons.pending_actions, color: Color(0xFF00214B)),
-              label: 'Pendente',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.local_shipping_outlined, color: Colors.grey),
-              selectedIcon: Icon(Icons.local_shipping_outlined, color: Color(0xFF00214B)),
-              label: 'Andamento',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.check_circle_outline, color: Colors.grey),
-              selectedIcon: Icon(Icons.check_circle_outline, color: Color(0xFF00214B)),
-              label: 'Finalizado',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.warning_amber_rounded, color: Colors.grey),
-              selectedIcon: Icon(Icons.warning_amber_rounded, color: Color(0xFF00214B)),
-              label: 'Falhas',
-            ),
-          ],
-        ),
-      ),
-      
-      // 🔵 CORPO DA TELA DINÂMICO
       body: SafeArea(
-        child: _buildBodyContent(),
+        child: _buildAbaPendente(),
       ),
     );
-  }
-
-  // ==========================================
-  // CONTROLE DE TELAS DO MENU INFERIOR
-  // ==========================================
-  Widget _buildBodyContent() {
-    switch (_selectedIndex) {
-      case 0: // Pendente
-        return _buildAbaPendente();
-      case 1: // Em Andamento
-        // Quando tiver a tela real, troque por: return MinhaTelaAndamento();
-        return const Center(child: Text("Rotas em andamento aparecerão aqui.", style: TextStyle(color: Colors.grey)));
-      case 2: // Finalizado
-        // Quando tiver a tela real, troque por: return MinhaTelaFinalizado();
-        return const Center(child: Text("Rotas finalizadas aparecerão aqui.", style: TextStyle(color: Colors.grey)));
-      case 3: // Falhas
-        // Quando tiver a tela real, troque por: return MinhaTelaFalhas();
-        return const Center(child: Text("Registro de falhas aparecerá aqui.", style: TextStyle(color: Colors.grey)));
-      default:
-        return _buildAbaPendente();
-    }
   }
 
   // ==========================================
@@ -291,7 +220,7 @@ class _PendingTabState extends State<PendingTab> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator(color: Color(0xFF00214B)))
               : rotas.isEmpty
-                  ? _buildEmptyState() // Design limpo
+                  ? _buildEmptyState()
                   : RefreshIndicator(
                       onRefresh: _carregarRotasPendentes,
                       color: const Color(0xFF00214B),
@@ -363,69 +292,79 @@ class _PendingTabState extends State<PendingTab> {
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    rota['descricao'] ?? 'Sem descrição',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF00214B),
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFFBEB),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'A realizar',
-                    style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            FutureBuilder<String>(
-              future: _buscarNomeVeiculo(rota['veiculo_id']),
-              builder: (context, snapshot) {
-                return Row(
-                  children: [
-                    Icon(Icons.local_shipping_outlined, size: 16, color: Colors.grey[600]),
-                    const SizedBox(width: 6),
-                    Text(
-                      snapshot.data ?? 'Carregando veículo...',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[700], fontWeight: FontWeight.w500),
-                    ),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF4F7FB),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoColumn(Icons.timer_outlined, "Tempo", rota['tempo_estimado']?.toString() ?? '-'),
-                  Container(width: 1, height: 30, color: Colors.grey[300]),
-                  _buildInfoColumn(Icons.route_outlined, "Distância", "${rota['total_km']?.toString() ?? '-'} km"),
-                  Container(width: 1, height: 30, color: Colors.grey[300]),
-                  _buildInfoColumn(Icons.inventory_2_outlined, "Carga", rota['carga_total']?.toString() ?? '-'),
+                  // SOLUÇÃO: O Expanded garante que a descrição só cresça até onde a tela permite.
+                  Expanded(
+                    child: Text(
+                      rota['descricao'] ?? 'Sem descrição',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF00214B),
+                      ),
+                      // SOLUÇÃO EXTRA: Adicionamos um maxLines para o texto não ficar infinito se for grande.
+                      maxLines: 2, 
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8), // Pequeno respiro entre o texto e a tag "A realizar"
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFFBEB),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'A realizar',
+                      style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                  ),
                 ],
               ),
-            ),
+              const SizedBox(height: 8),
+              FutureBuilder<String>(
+                future: _buscarNomeVeiculo(rota['veiculo_id']),
+                builder: (context, snapshot) {
+                  return Row(
+                    children: [
+                      Icon(Icons.local_shipping_outlined, size: 16, color: Colors.grey[600]),
+                      const SizedBox(width: 6),
+                      // SOLUÇÃO: Envolver o nome do veículo num Expanded também, caso seja um nome comprido
+                      Expanded(
+                        child: Text(
+                          snapshot.data ?? 'Carregando veículo...',
+                          style: TextStyle(fontSize: 14, color: Colors.grey[700], fontWeight: FontWeight.w500),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF4F7FB),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // SOLUÇÃO: Para esses 3 blocos não estourarem no celular menor, colocamos eles como 'Flexible' dentro do método '_buildInfoColumn' ou garantimos que tenham espaço de manobra. 
+                    Expanded(child: _buildInfoColumn(Icons.timer_outlined, "Tempo", rota['tempo_estimado']?.toString() ?? '-')),
+                    Container(width: 1, height: 30, color: Colors.grey[300]),
+                    Expanded(child: _buildInfoColumn(Icons.route_outlined, "Dist.", "${rota['total_km']?.toString() ?? '-'} km")), // "Distância" abreviado para caber melhor
+                    Container(width: 1, height: 30, color: Colors.grey[300]),
+                    Expanded(child: _buildInfoColumn(Icons.inventory_2_outlined, "Carga", rota['carga_total']?.toString() ?? '-')),
+                  ],
+                ),
+              ),
             const SizedBox(height: 24),
             const Text(
               "Lista de Paradas",
@@ -452,13 +391,13 @@ class _PendingTabState extends State<PendingTab> {
                 );
               },
             ),
-            const SizedBox(height: 20),
+      const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.yellow[600],
+                  backgroundColor: const Color(0xFF00214B),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -468,11 +407,15 @@ class _PendingTabState extends State<PendingTab> {
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.play_arrow_rounded, color: Colors.black, size: 24),
+                    Icon(Icons.play_arrow_rounded, color: Color.fromARGB(255, 255, 255, 255), size: 24),
                     SizedBox(width: 8),
-                    Text(
-                      'Iniciar Rota de Entregas',
-                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+                    // SOLUÇÃO: Colocamos o Flexible e o overflow aqui no texto do botão!
+                    Flexible(
+                      child: Text(
+                        'Iniciar Rota de Entregas',
+                        style: TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontWeight: FontWeight.bold, fontSize: 16),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
@@ -512,14 +455,14 @@ class _PendingTabState extends State<PendingTab> {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFFBEB),
-              border: Border.all(color: Colors.yellow[600]!),
+              color: const Color.fromARGB(255, 232, 232, 232),
+              border: Border.all(color: const Color(0xFF00214B)),
               shape: BoxShape.circle,
             ),
             child: Center(
               child: Text(
                 '${parada['ordem']}',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.yellow[800]),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: const Color(0xFF00214B)),
               ),
             ),
           ),
@@ -627,27 +570,7 @@ class _PendingTabState extends State<PendingTab> {
                         )
                       ],
                     ),
-                    const SizedBox(height: 24),
-                    Container(
-                      height: 150,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF4F7FB),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE5E7EB)),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.map_outlined, size: 40, color: Colors.blue[300]),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Visualização do Destino",
-                            style: TextStyle(color: Colors.blue[300], fontWeight: FontWeight.w500),
-                          )
-                        ],
-                      ),
-                    ),
+              
                     const SizedBox(height: 24),
                     const Text(
                       "Informações do Destino",
@@ -656,7 +579,7 @@ class _PendingTabState extends State<PendingTab> {
                     const SizedBox(height: 16),
                     _buildDesignRow(Icons.business, "Empresa/Loja", parada['empresa_loja'] ?? 'Não informado'),
                     _buildDesignRow(Icons.person_outline, "Responsável", parada['responsavel'] ?? 'Não informado'),
-                    _buildDesignRow(Icons.location_on_outlined, "Endereço Completo", 
+                    _buildDesignRow(Icons.location_on_outlined, "Endereço Completo",
                         "${parada['rua'] ?? '-'}, ${parada['numero'] ?? '-'}\n${parada['bairro'] ?? '-'} - ${parada['cidade'] ?? '-'}/${parada['uf'] ?? '-'}\nCEP: ${parada['cep'] ?? '-'}"),
                     _buildDesignRow(Icons.phone_outlined, "Telefone", parada['telefone_empresa'] ?? 'Não informado'),
                     _buildDesignRow(Icons.badge_outlined, "CPF/CNPJ", parada['cpf_cnpj'] ?? 'Não informado'),

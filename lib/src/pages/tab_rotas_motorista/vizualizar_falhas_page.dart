@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 
@@ -23,25 +23,11 @@ class _VisualizarFalhasPageState extends State<VisualizarFalhasPage> {
   bool _isLoading = true;
   
   List<Map<String, dynamic>> falhas = [];
-  List<Map<String, dynamic>> falhasFiltradas = []; // Para a barra de pesquisa
-  
-  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _carregarFalhas();
-    
-    // Listener para a barra de pesquisa
-    _searchController.addListener(() {
-      _filtrarFalhas(_searchController.text);
-    });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   // ==========================================
@@ -61,7 +47,6 @@ class _VisualizarFalhasPageState extends State<VisualizarFalhasPage> {
       if (paradasIds.isEmpty) {
         setState(() {
           falhas = [];
-          falhasFiltradas = [];
           _isLoading = false;
         });
         return;
@@ -107,7 +92,6 @@ class _VisualizarFalhasPageState extends State<VisualizarFalhasPage> {
 
       setState(() {
         falhas = falhasComDados;
-        falhasFiltradas = falhasComDados;
         _isLoading = false;
       });
     } catch (e) {
@@ -117,27 +101,7 @@ class _VisualizarFalhasPageState extends State<VisualizarFalhasPage> {
   }
 
   // ==========================================
-  // FILTRAR FALHAS (PESQUISA)
-  // ==========================================
-  void _filtrarFalhas(String query) {
-    if (query.isEmpty) {
-      setState(() {
-        falhasFiltradas = falhas;
-      });
-    } else {
-      setState(() {
-        falhasFiltradas = falhas.where((falha) {
-          final descricaoRota = falha['descricao_rota']?.toString().toLowerCase() ?? '';
-          final cidade = falha['cidade']?.toString().toLowerCase() ?? '';
-          final pesquisa = query.toLowerCase();
-          return descricaoRota.contains(pesquisa) || cidade.contains(pesquisa);
-        }).toList();
-      });
-    }
-  }
-
-  // ==========================================
-  // FORMATAR DATAS (Separado para Data e Hora conforme design)
+  // FORMATAR DATAS
   // ==========================================
   String _formatarDataApenas(String dataIso) {
     try {
@@ -199,36 +163,14 @@ class _VisualizarFalhasPageState extends State<VisualizarFalhasPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFF5F6FA), // Cor de fundo cinza bem claro do design
+      color: const Color(0xFFF5F6FA),
       child: Column(
         children: [
-          // BARRA DE PESQUISA
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: TextField(
-                controller: _searchController,
-                decoration: const InputDecoration(
-                  hintText: 'Pesquisar por status...',
-                  hintStyle: TextStyle(color: Colors.grey),
-                  prefixIcon: Icon(Icons.search, color: Colors.grey),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
-            ),
-          ),
-
           // LISTA DE FALHAS
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : falhasFiltradas.isEmpty
+                : falhas.isEmpty
                     ? const Center(
                         child: Text(
                           'Nenhuma rota com falha',
@@ -236,21 +178,10 @@ class _VisualizarFalhasPageState extends State<VisualizarFalhasPage> {
                         ),
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: falhasFiltradas.length + 1, // +1 para o texto final
+                        padding: const EdgeInsets.all(16),
+                        itemCount: falhas.length,
                         itemBuilder: (context, index) {
-                          if (index == falhasFiltradas.length) {
-                            return const Padding(
-                              padding: EdgeInsets.only(top: 16, bottom: 32),
-                              child: Center(
-                                child: Text(
-                                  'Fim das rotas com falhas',
-                                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                                ),
-                              ),
-                            );
-                          }
-                          return _buildFalhaCard(falhasFiltradas[index]);
+                          return _buildFalhaCard(falhas[index]);
                         },
                       ),
           ),
@@ -260,7 +191,7 @@ class _VisualizarFalhasPageState extends State<VisualizarFalhasPage> {
   }
 
   // ==========================================
-  // CARD DE FALHA (Design Fiel à Foto)
+  // CARD DE FALHA
   // ==========================================
   Widget _buildFalhaCard(Map<String, dynamic> falha) {
     return Container(
@@ -276,184 +207,129 @@ class _VisualizarFalhasPageState extends State<VisualizarFalhasPage> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // PARTE SUPERIOR BRANCA
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // CABEÇALHO: Título e Data/Hora
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // CABEÇALHO: Título e Data/Hora
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        falha['descricao_rota'] ?? 'Rota sem descrição',
-                        style: const TextStyle(
-                          color: Color(0xFF1447A6), // Azul escuro do título
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                Expanded(
+                  child: Text(
+                    falha['descricao_rota'] ?? 'Rota sem descrição',
+                    style: const TextStyle(
+                      color: Color(0xFF1447A6), // Azul escuro do título
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          _formatarDataApenas(falha['criado_em'] ?? ''),
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                        ),
-                        Text(
-                          _formatarHoraApenas(falha['criado_em'] ?? ''),
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                        ),
-                      ],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      _formatarDataApenas(falha['criado_em'] ?? ''),
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                    ),
+                    Text(
+                      _formatarHoraApenas(falha['criado_em'] ?? ''),
+                      style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
                     ),
                   ],
                 ),
-                
-                const SizedBox(height: 8),
+              ],
+            ),
+            
+            const SizedBox(height: 8),
 
-                // BADGE "FALHAS"
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFEBEE), // Fundo vermelho claro
-                    borderRadius: BorderRadius.circular(6),
+            // BADGE "FALHAS"
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFEBEE), // Fundo vermelho claro
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.warning_amber_rounded, color: Color(0xFFD32F2F), size: 16),
+                  const SizedBox(width: 4),
+                  const Text(
+                    'FALHAS',
+                    style: TextStyle(
+                      color: Color(0xFFD32F2F),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // CORPO: Imagem e Dados
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Imagem
+                GestureDetector(
+                  onTap: () => _expandirFoto(falha['foto_url']),
+                  child: Container(
+                    width: 90,
+                    height: 90,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.grey[200],
+                    ),
+                    child: falha['foto_url'] != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              falha['foto_url'],
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported, color: Colors.grey),
+                            ),
+                          )
+                        : const Icon(Icons.image, color: Colors.grey),
+                  ),
+                ),
+                
+                const SizedBox(width: 16),
+
+                // Lista de Informações com Ícones
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.warning_amber_rounded, color: Color(0xFFD32F2F), size: 16),
-                      const SizedBox(width: 4),
-                      Text(
-                        'FALHAS',
-                        style: const TextStyle(
-                          color: Color(0xFFD32F2F),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
+                      _buildInfoRow(Icons.location_on_outlined, '${falha['cidade'] ?? '-'}, ${falha['uf'] ?? '-'}'),
+                      const SizedBox(height: 6),
+                      _buildInfoRow(Icons.local_shipping_outlined, '${falha['rua'] ?? '-'}, ${falha['numero'] ?? '-'}'),
+                      const SizedBox(height: 6),
+                      _buildInfoRow(Icons.inventory_2_outlined, '${falha['bairro'] ?? '-'} - ${falha['cep'] ?? '-'}'),
+                      const SizedBox(height: 6),
+                      
+                      // NOVO COMPONENTE EXPANSÍVEL PARA A DESCRIÇÃO
+                      _ExpandableDescription(text: falha['descricao_falha'] ?? 'Sem descrição'),
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 16),
-
-                // CORPO: Imagem e Dados
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Imagem
-                    GestureDetector(
-                      onTap: () => _expandirFoto(falha['foto_url']),
-                      child: Container(
-                        width: 90,
-                        height: 90,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: Colors.grey[200],
-                        ),
-                        child: falha['foto_url'] != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.network(
-                                  falha['foto_url'],
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported, color: Colors.grey),
-                                ),
-                              )
-                            : const Icon(Icons.image, color: Colors.grey),
-                      ),
-                    ),
-                    
-                    const SizedBox(width: 16),
-
-                    // Lista de Informações com Ícones
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildInfoRow(Icons.location_on_outlined, '${falha['cidade'] ?? '-'}, ${falha['uf'] ?? '-'}'),
-                          const SizedBox(height: 6),
-                          _buildInfoRow(Icons.local_shipping_outlined, '${falha['rua'] ?? '-'}, ${falha['numero'] ?? '-'}'),
-                          const SizedBox(height: 6),
-                          _buildInfoRow(Icons.inventory_2_outlined, '${falha['bairro'] ?? '-'} - ${falha['cep'] ?? '-'}'),
-                          const SizedBox(height: 6),
-                          _buildInfoRow(Icons.info_outline, falha['descricao_falha'] ?? 'Sem descrição', isItalic: true),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
-          ),
-
-          // PARTE INFERIOR AZUL CLARO (BOTÕES)
-          Container(
-            decoration: const BoxDecoration(
-              color: Color(0xFFF4F7FC), // Fundo azul bem clarinho
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(16),
-                bottomRight: Radius.circular(16),
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                // Botão Detalhes (Texto Azul)
-                TextButton(
-                  onPressed: () {
-                    // Lógica para detalhes
-                  },
-                  child: const Text(
-                    'Detalhes',
-                    style: TextStyle(
-                      color: Color(0xFF1447A6), // Azul escuro
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                
-                // Botão Ver Erro (Preenchido Dark)
-                ElevatedButton(
-                  onPressed: () {
-                    // Lógica para ver erro
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF04122E), // Azul muito escuro/Preto do design
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Ver Erro',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                ),
-              ],
-            ),
-          )
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  // Widget auxiliar para as linhas de ícone + texto
-  Widget _buildInfoRow(IconData icon, String text, {bool isItalic = false}) {
+  // Widget auxiliar para as linhas de ícone + texto normal (não expansíveis)
+  Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -462,16 +338,77 @@ class _VisualizarFalhasPageState extends State<VisualizarFalhasPage> {
         Expanded(
           child: Text(
             text,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black87,
               fontSize: 13,
-              fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
+    );
+  }
+}
+
+// ==========================================
+// WIDGET PARA DESCRIÇÃO EXPANSÍVEL
+// ==========================================
+class _ExpandableDescription extends StatefulWidget {
+  final String text;
+
+  const _ExpandableDescription({required this.text});
+
+  @override
+  State<_ExpandableDescription> createState() => _ExpandableDescriptionState();
+}
+
+class _ExpandableDescriptionState extends State<_ExpandableDescription> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _isExpanded = !_isExpanded;
+        });
+      },
+      // Deixa o clique mais fácil de pegar em toda a área da linha
+      behavior: HitTestBehavior.opaque, 
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.info_outline, size: 18, color: Colors.black87),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.text,
+                  style: const TextStyle(
+                    color: Colors.black87,
+                    fontSize: 13,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  maxLines: _isExpanded ? null : 1, // Se expandido tira o limite de linhas
+                  overflow: _isExpanded ? null : TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _isExpanded ? 'Ver menos' : 'Ver mais',
+                  style: const TextStyle(
+                    color: Color(0xFF1447A6), // Mesma cor azul do título
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

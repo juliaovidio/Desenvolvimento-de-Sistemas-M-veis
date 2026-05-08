@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../layout/main_layout.dart';
 
@@ -21,6 +21,8 @@ class _VeiculosPageState extends State<VeiculosPage> {
   final supabase = Supabase.instance.client;
 
   String abaSelecionada = "visualizar";
+  String filtroStatus = "todos"; // todos, disponiveis, em_rota
+
   List veiculos = [];
   List filtrados = [];
 
@@ -36,14 +38,10 @@ class _VeiculosPageState extends State<VeiculosPage> {
   List sugestoesEditar = [];
   dynamic veiculoSelecionado;
 
-  // EXCLUIR
-  final buscaExcluirController = TextEditingController();
-  List filtradosExcluir = [];
-
   // CORES DO DESIGN
-  final Color primaryDark = const Color(0xFF0A1E3F);
-  final Color bgColor = const Color(0xFFF6F8FB);
-  final Color primaryBlue = const Color(0xFF1351B4);
+  final Color _darkBlue = const Color(0xFF0D2556);
+  final Color _bgColor = const Color(0xFFF4F7FC);
+  final Color _lightBlue = const Color(0xFFE8F0FE);
 
   @override
   void initState() {
@@ -58,7 +56,6 @@ class _VeiculosPageState extends State<VeiculosPage> {
     placaController.dispose();
     cargaController.dispose();
     buscaEditarController.dispose();
-    buscaExcluirController.dispose();
     super.dispose();
   }
 
@@ -68,20 +65,30 @@ class _VeiculosPageState extends State<VeiculosPage> {
 
     setState(() {
       veiculos = response;
-      filtrados = response;
-      filtradosExcluir = response;
+      aplicarFiltros();
     });
   }
 
   // ================== FILTROS ==================
-  void filtrar(String valor) {
-    final texto = valor.toLowerCase();
+  void aplicarFiltros() {
+    final texto = buscaController.text.toLowerCase();
 
     setState(() {
       filtrados = veiculos.where((v) {
-        return v['id'].toString().contains(texto) ||
+        final atendeBusca = v['id'].toString().contains(texto) ||
             (v['placa'] ?? '').toLowerCase().contains(texto) ||
             (v['descricao'] ?? '').toLowerCase().contains(texto);
+
+        // Se no futuro houver status no banco, você adiciona a lógica aqui.
+        // Por enquanto filtra apenas visualmente pelos botões superiores.
+        bool atendeStatus = true;
+        if (filtroStatus == 'disponiveis') {
+          atendeStatus = (v['status'] ?? 'disponível').toLowerCase() == 'disponível';
+        } else if (filtroStatus == 'em_rota') {
+          atendeStatus = (v['status'] ?? '').toLowerCase() == 'em rota';
+        }
+
+        return atendeBusca && atendeStatus;
       }).toList();
     });
   }
@@ -90,19 +97,11 @@ class _VeiculosPageState extends State<VeiculosPage> {
     final texto = valor.toLowerCase();
 
     setState(() {
+      if (texto.isEmpty) {
+        sugestoesEditar = [];
+        return;
+      }
       sugestoesEditar = veiculos.where((v) {
-        return v['id'].toString().contains(texto) ||
-            (v['placa'] ?? '').toLowerCase().contains(texto) ||
-            (v['descricao'] ?? '').toLowerCase().contains(texto);
-      }).toList();
-    });
-  }
-
-  void filtrarExcluir(String valor) {
-    final texto = valor.toLowerCase();
-
-    setState(() {
-      filtradosExcluir = veiculos.where((v) {
         return v['id'].toString().contains(texto) ||
             (v['placa'] ?? '').toLowerCase().contains(texto) ||
             (v['descricao'] ?? '').toLowerCase().contains(texto);
@@ -112,10 +111,17 @@ class _VeiculosPageState extends State<VeiculosPage> {
 
   // ================== CREATE ==================
   Future<void> criarVeiculo() async {
+    if (descricaoController.text.isEmpty || placaController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Preencha descrição e placa")),
+      );
+      return;
+    }
+
     await supabase.from('veiculos').insert({
       'descricao': descricaoController.text,
       'placa': placaController.text,
-      'carga_maxima': int.tryParse(cargaController.text) ?? 0,
+      'carga_maxima': double.tryParse(cargaController.text) ?? 0,
     });
 
     descricaoController.clear();
@@ -123,7 +129,8 @@ class _VeiculosPageState extends State<VeiculosPage> {
     cargaController.clear();
 
     await carregarVeiculos();
-    
+    setState(() => abaSelecionada = "visualizar");
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("✅ Veículo adicionado com sucesso")),
     );
@@ -138,11 +145,20 @@ class _VeiculosPageState extends State<VeiculosPage> {
         .update({
           'descricao': descricaoController.text,
           'placa': placaController.text,
-          'carga_maxima': int.tryParse(cargaController.text) ?? 0,
+          'carga_maxima': double.tryParse(cargaController.text) ?? 0,
         })
         .eq('id', veiculoSelecionado['id']);
 
     await carregarVeiculos();
+
+    setState(() {
+      veiculoSelecionado = null;
+      buscaEditarController.clear();
+      descricaoController.clear();
+      placaController.clear();
+      cargaController.clear();
+      abaSelecionada = "visualizar";
+    });
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("✅ Veículo atualizado")),
@@ -153,277 +169,250 @@ class _VeiculosPageState extends State<VeiculosPage> {
   Future<void> deletarVeiculo(int id) async {
     await supabase.from('veiculos').delete().eq('id', id);
     await carregarVeiculos();
+    
+    // Limpa a seleção se excluiu enquanto editava
+    if (veiculoSelecionado != null && veiculoSelecionado['id'] == id) {
+      setState(() {
+        veiculoSelecionado = null;
+        buscaEditarController.clear();
+        descricaoController.clear();
+        placaController.clear();
+        cargaController.clear();
+      });
+    }
   }
 
-  // ================== UI WIDGETS AUXILIARES ==================
-  
-  Widget _buildTextField({
-    required String label, 
-    required TextEditingController controller, 
-    IconData? icon, 
-    String? hint, 
-    String? suffixText,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+  // ================== UI COMPONENTS ==================
+  Widget _buildFiltroChip(String titulo, IconData icone, String valor, Color corIcone) {
+    bool ativo = filtroStatus == valor;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          filtroStatus = valor;
+          aplicarFiltros();
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: ativo ? _darkBlue : Colors.white,
+          border: Border.all(color: ativo ? _darkBlue : Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
           children: [
-            if (icon != null) ...[
-              Icon(icon, size: 20, color: Colors.black87),
-              const SizedBox(width: 8),
-            ],
-            Text(label, style: const TextStyle(color: Colors.black87, fontSize: 15)),
+            Icon(icone, size: 16, color: ativo ? Colors.white : corIcone),
+            const SizedBox(width: 8),
+            Text(
+              titulo,
+              style: TextStyle(
+                color: ativo ? Colors.white : Colors.grey[700],
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          keyboardType: keyboardType,
-          decoration: InputDecoration(
-            hintText: hint,
-            suffixText: suffixText,
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: primaryDark),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          ),
-        ),
-        const SizedBox(height: 20),
-      ],
+      ),
     );
   }
 
-  Widget _buildHeader(String title, {String? subtitle, String? supertitle}) {
+  Widget _buildTextFieldCustom(String label, IconData icon, TextEditingController controller, {String hint = "", TextInputType type = TextInputType.text}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (supertitle != null)
-            Text(
-              supertitle.toUpperCase(),
-              style: TextStyle(color: primaryBlue, fontSize: 10, letterSpacing: 1.2, fontWeight: FontWeight.bold),
-            ),
-          if (supertitle != null) const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: primaryDark),
+          Row(
+            children: [
+              Icon(icon, size: 20, color: Colors.grey[800]),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[800],
+                ),
+              ),
+            ],
           ),
-          if (subtitle != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+          const SizedBox(height: 8),
+          TextField(
+            controller: controller,
+            keyboardType: type,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: Colors.grey[400]),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: _darkBlue),
+              ),
             ),
-          ]
+          ),
         ],
       ),
     );
   }
 
-  Widget abaBottomNav(IconData icon, String titulo, String valor) {
-    final ativo = abaSelecionada == valor;
+  Widget cardVeiculo(v) {
+    // Simulando status baseado na UI que você mandou
+    String status = v['status'] ?? 'Disponível';
+    bool isDisponivel = status.toLowerCase() == 'disponível';
 
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: _lightBlue,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.local_shipping, color: _darkBlue),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isDisponivel ? Colors.green[100] : _lightBlue,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  status,
+                  style: TextStyle(
+                    color: isDisponivel ? Colors.green[800] : _darkBlue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              )
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("CÓDIGO", style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+                  Text("V${v['id'].toString().padLeft(3, '0')}", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text("CARGA MÁXIMA", style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+                  Text("${v['carga_maxima']} kg", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("DESCRIÇÃO", style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+              Text("${v['descricao']}", style: const TextStyle(fontSize: 16)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("PLACAS", style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+              Text("${v['placa']}", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ================== MENU INFERIOR ==================
+  Widget _buildBottomMenu() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey[200]!)),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: SafeArea(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildMenuItem("Visualizar", Icons.remove_red_eye_outlined, "visualizar"),
+            _buildMenuItem("Criar", Icons.add_box_outlined, "criar"),
+            _buildMenuItem("Editar", Icons.edit_outlined, "editar"),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuItem(String label, IconData icon, String valor) {
+    bool ativo = abaSelecionada == valor;
     return GestureDetector(
       onTap: () {
         setState(() {
           abaSelecionada = valor;
           if (valor != 'editar') {
-             descricaoController.clear();
-             placaController.clear();
-             cargaController.clear();
-             veiculoSelecionado = null;
+            veiculoSelecionado = null;
+            buscaEditarController.clear();
+            descricaoController.clear();
+            placaController.clear();
+            cargaController.clear();
           }
         });
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: ativo ? const Color(0xFFEAF2FF) : Colors.transparent,
+          color: ativo ? _lightBlue : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: ativo ? primaryDark : Colors.grey.shade500),
+            Icon(icon, color: ativo ? _darkBlue : Colors.grey),
             const SizedBox(height: 4),
             Text(
-              titulo,
+              label,
               style: TextStyle(
-                color: ativo ? primaryDark : Colors.grey.shade500,
-                fontSize: 12,
+                color: ativo ? _darkBlue : Colors.grey,
                 fontWeight: ativo ? FontWeight.bold : FontWeight.normal,
+                fontSize: 12,
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // CARD PARA A TELA "VISUALIZAR"
-  Widget cardVeiculoVisualizar(v) {
-    String codigoFormatado = "V${v['id'].toString().padLeft(3, '0')}";
-    bool disponivel = v['id'] % 2 != 0; // Fake status para visual visual (substituir por lógica real caso exista no BD)
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
-        ]
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: const Color(0xFFEFF4FF), borderRadius: BorderRadius.circular(10)),
-                child: Icon(disponivel ? Icons.local_shipping : Icons.moped, color: primaryBlue),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: disponivel ? const Color(0xFFDDF5E6) : const Color(0xFFE6F0FF),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  disponivel ? "Disponível" : "Em Rota",
-                  style: TextStyle(
-                    color: disponivel ? const Color(0xFF1B8A44) : primaryBlue,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("CÓDIGO", style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.bold)),
-              Text(codigoFormatado, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text("DESCRIÇÃO", style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Text("${v['descricao']}", style: const TextStyle(fontSize: 16, color: Colors.black87)),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("PLACAS", style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    Text("${v['placa']}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("CARGA MÁXIMA", style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    Text("${v['carga_maxima']} kg", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // CARD PARA A TELA "EXCLUIR"
-  Widget cardVeiculoExcluir(v) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 70, height: 70,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.local_shipping, color: Colors.grey, size: 30),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("${v['descricao']}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                const SizedBox(height: 4),
-                Text("Placa: ${v['placa']}", style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: const Color(0xFFDDF5E6), borderRadius: BorderRadius.circular(6)),
-                  child: const Text("DISPONÍVEL", style: TextStyle(color: Color(0xFF1B8A44), fontSize: 10, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.red),
-            style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFFFDE8E8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-              padding: const EdgeInsets.all(12),
-            ),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (_) => AlertDialog(
-                  title: const Text("Confirmar Exclusão"),
-                  content: const Text("Deseja deletar esse veículo da frota permanentemente?"),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                      onPressed: () {
-                        deletarVeiculo(v['id']);
-                        Navigator.pop(context);
-                      },
-                      child: const Text("Deletar", style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
       ),
     );
   }
@@ -434,286 +423,254 @@ class _VeiculosPageState extends State<VeiculosPage> {
       cargo: widget.cargo,
       nome: widget.nome,
       autorId: widget.autorId,
-      titulo: "",
-      child: Scaffold(
-        backgroundColor: bgColor,
-        body: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: Stack(
-                  children: [
-                    // ================= VISUALIZAR =================
-                    if (abaSelecionada == "visualizar") 
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 20),
-                            
-                            TextField(
-                              controller: buscaController,
-                              onChanged: filtrar,
-                              decoration: InputDecoration(
-                                hintText: "Buscar por placa, descrição ou código...",
-                                prefixIcon: const Icon(Icons.search),
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            // Filtros Visuais Estáticos
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: [
-                                  Chip(label: const Text("Todos", style: TextStyle(color: Colors.white)), backgroundColor: primaryDark, avatar: const Icon(Icons.local_shipping, color: Colors.white, size: 16)),
-                                  const SizedBox(width: 8),
-                                  Chip(label: const Text("Disponíveis"), backgroundColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.grey.shade300)), avatar: const Icon(Icons.check_circle_outline, size: 16)),
-                                  const SizedBox(width: 8),
-                                  Chip(label: const Text("Em Rota"), backgroundColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.grey.shade300)), avatar: const Icon(Icons.access_time, size: 16)),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Expanded(
-                              child: ListView.builder(
-                                itemCount: filtrados.length,
-                                padding: const EdgeInsets.only(bottom: 80),
-                                itemBuilder: (_, i) => cardVeiculoVisualizar(filtrados[i]),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
+      titulo: "Veículos", // Mantém veículos escrito no topo
+      paginaAtiva: 'veiculos',
+      child: Container(
+        color: _bgColor,
+        child: Column(
+          children: [
+            Expanded(
+              child: _buildBodyContent(),
+            ),
+            _buildBottomMenu(),
+          ],
+        ),
+      ),
+    );
+  }
 
-                    // ================= CRIAR =================
-                    if (abaSelecionada == "criar")
-                      SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildHeader(
-                              "",
-                          
-                             
-                            ),
-                            // Imagem Placeholder
-                            Container(
-                              height: 140,
-                              width: double.infinity,
-                              margin: const EdgeInsets.only(bottom: 24),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade300,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              alignment: Alignment.bottomLeft,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Colors.black.withOpacity(0.7), Colors.transparent]),
-                                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12))
-                                ),
-                                child: const Text("Novo Registro de Frota", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-                              child: Column(
-                                children: [
-                                  _buildTextField(label: "Descrição", controller: descricaoController, icon: Icons.description_outlined, hint: "Ex: Caminhão Baú Scania R450"),
-                                  _buildTextField(label: "Placa", controller: placaController, icon: Icons.credit_card_outlined, hint: "ABC-1234"),
-                                  _buildTextField(label: "Carga máxima", controller: cargaController, icon: Icons.shopping_bag_outlined, hint: "0.00", suffixText: "KG", keyboardType: TextInputType.number),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    height: 55,
-                                    child: ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(backgroundColor: primaryDark, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-                                      onPressed: criarVeiculo,
-                                      icon: const Icon(Icons.add_circle_outline, color: Colors.white),
-                                      label: const Text("Adicionar Veículo", style: TextStyle(color: Colors.white, fontSize: 16)),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(color: const Color(0xFFE6EFFF), borderRadius: BorderRadius.circular(12)),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.info_outline, color: primaryDark),
-                                  const SizedBox(width: 12),
-                                  Expanded(child: Text("Os veículos adicionados serão revisados pelo gerente de frota antes da ativação.", style: TextStyle(color: primaryDark))),
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
+  Widget _buildBodyContent() {
+    // ================= VISUALIZAR =================
+    if (abaSelecionada == "visualizar") {
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // CAMPO DE BUSCA
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-
-                    // ================= EDITAR =================
-                    if (abaSelecionada == "editar")
-                      SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                          
-                            TextField(
-                              controller: buscaEditarController,
-                              onChanged: filtrarEditar,
-                              decoration: InputDecoration(
-                                hintText: "Buscar veículo",
-                                prefixIcon: const Icon(Icons.search),
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-                              ),
-                            ),
-                            if (sugestoesEditar.isNotEmpty)
-                              Container(
-                                margin: const EdgeInsets.only(top: 8),
-                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade200)),
-                                child: Column(
-                                  children: sugestoesEditar.map((v) => ListTile(
-                                    leading: const Icon(Icons.local_shipping),
-                                    title: Text(v['descricao']),
-                                    subtitle: Text(v['placa']),
-                                    onTap: () {
-                                      setState(() {
-                                        veiculoSelecionado = v;
-                                        descricaoController.text = v['descricao'];
-                                        placaController.text = v['placa'];
-                                        cargaController.text = v['carga_maxima'].toString();
-                                        sugestoesEditar.clear();
-                                      });
-                                    },
-                                  )).toList(),
-                                ),
-                              ),
-                            
-                            const SizedBox(height: 20),
-                            // Imagem Placeholder (Mock)
-                            Container(
-                              height: 160,
-                              width: double.infinity,
-                              margin: const EdgeInsets.only(bottom: 24),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade300,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              alignment: Alignment.bottomLeft,
-                              child: Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  decoration: BoxDecoration(color: primaryBlue, borderRadius: BorderRadius.circular(20)),
-                                  child: Text(veiculoSelecionado != null ? "Veículo ID: #TM-${veiculoSelecionado['id']}" : "Selecione um veículo", style: const TextStyle(color: Colors.white)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-                              child: Column(
-                                children: [
-                                  _buildTextField(label: "Descrição", controller: descricaoController),
-                                  _buildTextField(label: "Placa", controller: placaController, icon: null), // Icone na direita no mock (omitido para reusabilidade)
-                                  _buildTextField(label: "Carga máxima (kg)", controller: cargaController, keyboardType: TextInputType.number),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    height: 55,
-                                    child: ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(backgroundColor: primaryDark, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-                                      onPressed: editarVeiculo,
-                                      icon: const Icon(Icons.save_outlined, color: Colors.white),
-                                      label: const Text("Salvar edição", style: TextStyle(color: Colors.white, fontSize: 16)),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 50),
-                          ],
-                        ),
-                      ),
-
-                    // ================= EXCLUIR =================
-                    if (abaSelecionada == "excluir")
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            
-                          
-                            TextField(
-                              controller: buscaExcluirController,
-                              onChanged: filtrarExcluir,
-                              decoration: InputDecoration(
-                                hintText: "Buscar para excluir...",
-                                prefixIcon: const Icon(Icons.search),
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Expanded(
-                              child: ListView.builder(
-                                itemCount: filtradosExcluir.length,
-                                padding: const EdgeInsets.only(bottom: 80),
-                                itemBuilder: (_, i) => cardVeiculoExcluir(filtradosExcluir[i]),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      
-                      // FAB "BOT" (Flutuando em todas as abas)
-                      Positioned(
-                        bottom: 16,
-                        right: 16,
-                        child: FloatingActionButton(
-                          backgroundColor: primaryDark,
-                          onPressed: () {},
-                          child: const Icon(Icons.smart_toy_outlined, color: Colors.white),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-
-              // ================= BOTTOM NAVIGATION CUSTOMIZADA =================
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border(top: BorderSide(color: Colors.grey.shade200)),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: SafeArea(
-                  top: false,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      abaBottomNav(Icons.visibility_outlined, "Visualizar", "visualizar"),
-                      abaBottomNav(Icons.add_box_outlined, "Criar", "criar"),
-                      abaBottomNav(Icons.edit_outlined, "Editar", "editar"),
-                      abaBottomNav(Icons.warning_amber_rounded, "Falhas", "excluir"), // Mantive o texto "Falhas" correspondente a imagem, linkado a logica excluir
                     ],
+                  ),
+                  child: TextField(
+                    controller: buscaController,
+                    onChanged: (_) => aplicarFiltros(),
+                    decoration: InputDecoration(
+                      hintText: "Buscar por placa, descrição ou códig...",
+                      hintStyle: TextStyle(color: Colors.grey[500]),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // FILTROS
+              
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              itemCount: filtrados.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 16),
+              itemBuilder: (_, i) => cardVeiculo(filtrados[i]),
+            ),
+          )
+        ],
+      );
+    }
+
+    // ================= CRIAR =================
+    if (abaSelecionada == "criar") {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTextFieldCustom("Descrição", Icons.description_outlined, descricaoController, hint: "Ex: Caminhão Baú Scania R450"),
+              _buildTextFieldCustom("Placa", Icons.credit_card, placaController, hint: "ABC-1234"),
+              _buildTextFieldCustom("Carga máxima", Icons.shopping_bag_outlined, cargaController, hint: "0.00", type: TextInputType.number),
+              
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _darkBlue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: criarVeiculo,
+                  icon: const Icon(Icons.add_circle_outline, color: Colors.white),
+                  label: const Text(
+                    "Adicionar Veículo",
+                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
+      );
+    }
+
+    // ================= EDITAR =================
+    if (abaSelecionada == "editar") {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Campo de busca para edição
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: TextField(
+                controller: buscaEditarController,
+                onChanged: filtrarEditar,
+                decoration: const InputDecoration(
+                  hintText: "Buscar veículo para editar...",
+                  prefixIcon: Icon(Icons.search),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ),
+            
+            if (sugestoesEditar.isNotEmpty && veiculoSelecionado == null)
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: sugestoesEditar.length,
+                  itemBuilder: (context, index) {
+                    final v = sugestoesEditar[index];
+                    return ListTile(
+                      leading: Icon(Icons.local_shipping, color: _darkBlue),
+                      title: Text(v['descricao'] ?? ''),
+                      subtitle: Text(v['placa'] ?? ''),
+                      onTap: () {
+                        setState(() {
+                          veiculoSelecionado = v;
+                          descricaoController.text = v['descricao'] ?? '';
+                          placaController.text = v['placa'] ?? '';
+                          cargaController.text = v['carga_maxima'].toString();
+                          sugestoesEditar.clear();
+                          buscaEditarController.text = v['descricao'] ?? '';
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+
+            const SizedBox(height: 20),
+
+            // O mesmo formulário visual do Criar
+            if (veiculoSelecionado != null)
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Editando Veículo",
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _darkBlue),
+                        ),
+                        // Botão de excluir integrado no editar
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: const Text("Confirmar"),
+                                content: const Text("Deseja deletar esse veículo?"),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text("Cancelar"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      deletarVeiculo(veiculoSelecionado['id']);
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text("Deletar", style: TextStyle(color: Colors.red)),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    _buildTextFieldCustom("Descrição", Icons.description_outlined, descricaoController),
+                    _buildTextFieldCustom("Placa", Icons.credit_card, placaController),
+                    _buildTextFieldCustom("Carga máxima", Icons.shopping_bag_outlined, cargaController, type: TextInputType.number),
+                    
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _darkBlue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: editarVeiculo,
+                        icon: const Icon(Icons.save_outlined, color: Colors.white),
+                        label: const Text(
+                          "Salvar edição",
+                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 }

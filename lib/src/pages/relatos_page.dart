@@ -1,12 +1,14 @@
-// ignore: file_names
+﻿// ignore: file_names
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../layout/main_layout.dart';
+
 
 class RelatosPage extends StatefulWidget {
   final String cargo;
   final String nome;
   final int autorId;
+
 
   const RelatosPage({
     super.key,
@@ -15,24 +17,29 @@ class RelatosPage extends StatefulWidget {
     required this.autorId,
   });
 
+
   @override
   State<RelatosPage> createState() => _RelatosPageState();
 }
 
+
 class _RelatosPageState extends State<RelatosPage> {
   final supabase = Supabase.instance.client;
-  
+ 
   List relatosOriginais = []; // Guarda todos os relatos
   List relatosFiltrados = []; // Guarda os relatos após pesquisa
   bool isLoading = true;
 
+
   final buscaCtrl = TextEditingController();
+
 
   // 🔥 CORES DO DESIGN REFINADO
   final Color primaryDarkBlue = const Color(0xFF04122E); // Azul escuro do ROBÔ/Fundo FAB
   final Color bgColor = const Color(0xFFF5F6FA); // Fundo cinza bem claro
-  final Color primaryBlueTitle = const Color(0xFF1447A6); // Azul vibrante para títulos
+  final Color primaryBlueTitle = const Color(0xFF00214B); // Azul vibrante para títulos
   final Color placeholderColor = const Color(0xFFE9EDF2); // Cor de fundo da foto vazia
+
 
   @override
   void initState() {
@@ -40,9 +47,11 @@ class _RelatosPageState extends State<RelatosPage> {
     carregarRelatos();
   }
 
+
   // =============================
   // 🔥 BANCO DE DADOS
   // =============================
+
 
   Future<void> carregarRelatos() async {
     try {
@@ -52,6 +61,7 @@ class _RelatosPageState extends State<RelatosPage> {
           .from('relatos_problema')
           .select('*, funcionarios(nome)')
           .order('criado_em', ascending: false); // Mais novos primeiro
+
 
       setState(() {
         relatosOriginais = response;
@@ -64,9 +74,11 @@ class _RelatosPageState extends State<RelatosPage> {
     }
   }
 
+
   // =============================
   // 🔍 SISTEMA DE BUSCA
   // =============================
+
 
   void filtrarRelatos(String termo) {
     if (termo.isEmpty) {
@@ -74,14 +86,17 @@ class _RelatosPageState extends State<RelatosPage> {
       return;
     }
 
+
     final termoLimpo = termo.toLowerCase().trim();
+
 
     setState(() {
       relatosFiltrados = relatosOriginais.where((relato) {
         // 1. Pega o nome do motorista
-        final nomeMotorista = relato['funcionarios'] != null 
-            ? relato['funcionarios']['nome'].toString().toLowerCase() 
+        final nomeMotorista = relato['funcionarios'] != null
+            ? relato['funcionarios']['nome'].toString().toLowerCase()
             : '';
+
 
         // 2. Formata a data do relato para o formato DD/MM/YYYY para comparar
         String dataFormatadaBusca = "";
@@ -90,15 +105,18 @@ class _RelatosPageState extends State<RelatosPage> {
           dataFormatadaBusca = "${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year}";
         }
 
+
         // Verifica se o termo digitado tem no nome OU na data
         return nomeMotorista.contains(termoLimpo) || dataFormatadaBusca.contains(termoLimpo);
       }).toList();
     });
   }
 
+
   // =============================
   // 🖼️ EXPANDIR IMAGEM
   // =============================
+
 
   void mostrarImagem(String url) {
     showDialog(
@@ -134,9 +152,11 @@ class _RelatosPageState extends State<RelatosPage> {
     );
   }
 
+
   // =============================
   // UI WIDGETS (VISUAL FIEL)
   // =============================
+
 
   Widget cardRelato(Map f) {
     // Formatando a data visualmente para o rodapé
@@ -148,8 +168,10 @@ class _RelatosPageState extends State<RelatosPage> {
       horaMinuto = "${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}";
     }
 
+
     // Pega o nome vindo do Join (ou mostra aviso se não achar)
     String nomeMotorista = f['funcionarios'] != null ? f['funcionarios']['nome'] : 'Motorista Desconhecido';
+
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -207,7 +229,7 @@ class _RelatosPageState extends State<RelatosPage> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                
+               
                 // 📄 DADOS DO RELATO
                 Expanded(
                   child: Column(
@@ -240,7 +262,7 @@ class _RelatosPageState extends State<RelatosPage> {
               ],
             ),
           ),
-          
+         
           // Barra inferior com a data (igual ao padrão da foto de Falhas)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -257,6 +279,7 @@ class _RelatosPageState extends State<RelatosPage> {
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -296,13 +319,14 @@ class _RelatosPageState extends State<RelatosPage> {
                     ),
                   ),
 
+
                   // ================= LISTA DE RELATOS =================
                   Expanded(
                     child: isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : relatosFiltrados.isEmpty
                             ? Center(
-                                child: Text("Nenhum relato encontrado.", 
+                                child: Text("Nenhum relato encontrado.",
                                   style: TextStyle(fontSize: 16, color: Colors.grey.shade600)
                                 ))
                             : ListView.builder(
@@ -313,26 +337,10 @@ class _RelatosPageState extends State<RelatosPage> {
                   ),
                 ],
               ),
-              
+             
               // ================= BOTÃO FAB (Design Fiel) =================
-              Positioned(
-                bottom: 20,
-                right: 20,
-                child: SizedBox(
-                  width: 56,
-                  height: 56,
-                  child: FloatingActionButton(
-                    backgroundColor: primaryDarkBlue, // Cor exata do robozinho
-                    elevation: 4,
-                    highlightElevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                    onPressed: () {
-                      // Ação do Botão
-                    },
-                    child: const Icon(Icons.smart_toy_outlined, color: Colors.white, size: 28),
-                  ),
-                ),
-              ),
+             
+              
             ],
           ),
         ),
@@ -340,3 +348,4 @@ class _RelatosPageState extends State<RelatosPage> {
     );
   }
 }
+

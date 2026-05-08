@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class MenuButton extends StatelessWidget {
   final String titulo;
@@ -16,10 +16,10 @@ class MenuButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 1, 21, 87),
+          backgroundColor: const Color(0xFF00214B),
           padding: EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(8),
           ),
         ),
         child: Text(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 
@@ -6,7 +6,7 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 // Classe para gerenciar os controladores de cada parada
 // ---------------------------------------------------------
 class ParadaModel {
-  TextEditingController ordem = TextEditingController(); // NOVO CAMPO
+  TextEditingController ordem = TextEditingController(); 
   TextEditingController cidade = TextEditingController();
   TextEditingController uf = TextEditingController();
   TextEditingController bairro = TextEditingController();
@@ -18,7 +18,7 @@ class ParadaModel {
   TextEditingController cpfCnpj = TextEditingController();
   TextEditingController telefone = TextEditingController();
   TextEditingController infoCarga = TextEditingController();
-  TextEditingController valorPorParada = TextEditingController(); // NOVO CAMPO
+  TextEditingController valorPorParada = TextEditingController(); 
 
   void dispose() {
     ordem.dispose();
@@ -134,7 +134,7 @@ class _CriarRotaTabState extends State<CriarRotaTab> {
   Future<void> salvarRotaEParadas() async {
     if (motoristaSelecionadoId == null || veiculoSelecionadoId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Selecione um motorista e um veículo!'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('Selecione um motorista e um veículo!'), backgroundColor: Colors.red),
       );
       return;
     }
@@ -142,7 +142,7 @@ class _CriarRotaTabState extends State<CriarRotaTab> {
     for (var p in listaParadas) {
       if (p.cidade.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Preencha a cidade em todas as paradas!'), backgroundColor: Colors.red),
+          const SnackBar(content: Text('Preencha a cidade em todas as paradas!'), backgroundColor: Colors.red),
         );
         return;
       }
@@ -167,13 +167,10 @@ class _CriarRotaTabState extends State<CriarRotaTab> {
 
       final int rotaId = rotaResponse['id'];
 
-      // Salva as paradas exatamente na ordem em que estão na tela,
-      // pegando o número manual que o usuário digitou no campo "Ordem".
       List<Map<String, dynamic>> paradasParaInserir = [];
       for (int i = 0; i < listaParadas.length; i++) {
         final p = listaParadas[i];
         
-        // Se o usuário esquecer de digitar a ordem, o sistema coloca a ordem da tela (i+1)
         int ordemManual = int.tryParse(p.ordem.text) ?? (i + 1);
         double valorParada = double.tryParse(p.valorPorParada.text) ?? 0.0;
 
@@ -191,7 +188,7 @@ class _CriarRotaTabState extends State<CriarRotaTab> {
           'cpf_cnpj': p.cpfCnpj.text,
           'telefone_empresa': p.telefone.text,
           'info_carga': p.infoCarga.text,
-          'valor_por_parada': valorParada, // NOVO CAMPO INSERIDO NO BANCO
+          'valor_por_parada': valorParada, 
           'status': 'pendente',
         });
       }
@@ -199,10 +196,9 @@ class _CriarRotaTabState extends State<CriarRotaTab> {
       await supabase.from('paradas').insert(paradasParaInserir);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('✅ Rota criada com sucesso!'), backgroundColor: Colors.green),
+        const SnackBar(content: Text('✅ Rota criada com sucesso!'), backgroundColor: Colors.green),
       );
       
-      // Limpar campos após salvar
       descricaoController.clear();
       motoristaSearchController.clear();
       veiculoSearchController.clear();
@@ -212,6 +208,8 @@ class _CriarRotaTabState extends State<CriarRotaTab> {
       valorCaminhaoController.clear();
       valorCobrarController.clear();
       cargaTotalController.clear();
+      motoristaSelecionadoId = null;
+      veiculoSelecionadoId = null;
       
       setState(() {
         listaParadas = [ParadaModel()];
@@ -232,22 +230,28 @@ class _CriarRotaTabState extends State<CriarRotaTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF4F6F8), // Fundo mais moderno
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTextField("Descrição:", descricaoController),
-            SizedBox(height: 10),
+            const Text(
+              "Dados Principais da Rota",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F265C)),
+            ),
+            const SizedBox(height: 16),
 
-            Text("Motorista:", style: TextStyle(fontWeight: FontWeight.bold)),
+            _buildTextField("Descrição da Rota", descricaoController, hint: "Ex: Entregas centro SP..."),
+            
+            const Text("Motorista", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
+            const SizedBox(height: 8),
             TypeAheadField<Map<String, dynamic>>(
               builder: (context, controller, focusNode) {
                 return TextField(
                   controller: motoristaSearchController,
                   focusNode: focusNode,
-                  decoration: _inputDeco("Nome do motorista"),
+                  decoration: _inputDeco("Buscar motorista disponível..."),
                 );
               },
               suggestionsCallback: (pattern) async => await buscarMotoristasLivres(pattern),
@@ -257,15 +261,16 @@ class _CriarRotaTabState extends State<CriarRotaTab> {
                 motoristaSelecionadoId = suggestion['id'];
               },
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 16),
 
-            Text("Veículo:", style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text("Veículo", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
+            const SizedBox(height: 8),
             TypeAheadField<Map<String, dynamic>>(
               builder: (context, controller, focusNode) {
                 return TextField(
                   controller: veiculoSearchController,
                   focusNode: focusNode,
-                  decoration: _inputDeco("Nome do veículo"),
+                  decoration: _inputDeco("Buscar veículo disponível..."),
                 );
               },
               suggestionsCallback: (pattern) async => await buscarVeiculosLivres(pattern),
@@ -275,148 +280,184 @@ class _CriarRotaTabState extends State<CriarRotaTab> {
                 veiculoSelecionadoId = suggestion['id'];
               },
             ),
-            SizedBox(height: 20),
-
-            Divider(thickness: 2),
-            Text("Paradas:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            SizedBox(height: 10),
+            
+            const SizedBox(height: 32),
+            const Divider(thickness: 1, color: Colors.black12),
+            const SizedBox(height: 16),
+            
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Roteiro de Paradas", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0F265C))),
+                TextButton.icon(
+                  onPressed: () => setState(() => listaParadas.add(ParadaModel())),
+                  icon: const Icon(Icons.add_circle, color: Color(0xFF00214B)),
+                  label: const Text("Nova Parada", style: TextStyle(color: Color(0xFF00214B), fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
 
             ListView.builder(
               shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: listaParadas.length,
               itemBuilder: (context, index) {
                 final parada = listaParadas[index];
-                return Card(
-                  color: Colors.grey[100],
-                  margin: EdgeInsets.only(bottom: 15),
-                  child: Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("Parada ${index + 1}", style: TextStyle(fontWeight: FontWeight.bold)),
-                            if (listaParadas.length > 1)
-                              IconButton(
-                                icon: Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => setState(() => listaParadas.removeAt(index)),
-                              )
-                          ],
-                        ),
-
-                        // ===== CAMPOS NOVOS AQUI =====
-                        _buildTextField("Ordem", parada.ordem, isNumber: true),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
-                          child: Text(
-                            "pergunte para a IA a melhor ordem",
-                            style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 4)),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(20)),
+                            child: Text("Parada ${index + 1}", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00214B))),
                           ),
-                        ),
-                        
-                        _buildTextField("Valor por parada:", parada.valorPorParada, isNumber: true),
-                        SizedBox(height: 8),
-                        // ==============================
+                          if (listaParadas.length > 1)
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, color: Colors.red),
+                              onPressed: () => setState(() => listaParadas.removeAt(index)),
+                              tooltip: "Remover Parada",
+                            )
+                        ],
+                      ),
+                      const SizedBox(height: 20),
 
-                        Row(
+                      _buildTextField("Ordem", parada.ordem, isNumber: true, hint: "Ex: 1"),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Row(
                           children: [
-                            Expanded(flex: 3, child: _buildTextField("Cidade", parada.cidade)),
-                            SizedBox(width: 10),
-                            Expanded(flex: 1, child: _buildTextField("UF", parada.uf)),
+                            Icon(Icons.auto_awesome, size: 14, color: Color(0xFF00214B)),
+                            const SizedBox(width: 4),
+                            Text(
+                              "Pergunte para a IA a melhor ordem",
+                              style: TextStyle(fontSize: 12, color: Color(0xFF00214B), fontStyle: FontStyle.italic, fontWeight: FontWeight.w500),
+                            ),
                           ],
                         ),
-                        _buildTextField("Bairro", parada.bairro),
-                        _buildTextField("CEP", parada.cep),
-                        Row(
-                          children: [
-                            Expanded(flex: 3, child: _buildTextField("Rua", parada.rua)),
-                            SizedBox(width: 10),
-                            Expanded(flex: 1, child: _buildTextField("Nº", parada.numero)),
-                          ],
-                        ),
-                        _buildTextField("Empresa/Loja", parada.empresa),
-                        _buildTextField("Responsável", parada.responsavel),
-                        _buildTextField("CPF/CNPJ", parada.cpfCnpj),
-                        _buildTextField("Telefone", parada.telefone),
-                        _buildTextField("Informação da Carga", parada.infoCarga),
-                      ],
-                    ),
+                      ),
+                      
+                      _buildTextField("Valor por parada", parada.valorPorParada, isNumber: true, hint: "R\$ 0.00"),
+                      
+                      Row(
+                        children: [
+                          Expanded(flex: 3, child: _buildTextField("Cidade", parada.cidade)),
+                          const SizedBox(width: 12),
+                          Expanded(flex: 1, child: _buildTextField("UF", parada.uf, hint: "SP")),
+                        ],
+                      ),
+                      _buildTextField("Bairro", parada.bairro),
+                      _buildTextField("CEP", parada.cep),
+                      Row(
+                        children: [
+                          Expanded(flex: 3, child: _buildTextField("Rua", parada.rua)),
+                          const SizedBox(width: 12),
+                          Expanded(flex: 1, child: _buildTextField("Nº", parada.numero)),
+                        ],
+                      ),
+                      _buildTextField("Empresa/Loja", parada.empresa),
+                      _buildTextField("Responsável", parada.responsavel),
+                      _buildTextField("CPF/CNPJ", parada.cpfCnpj),
+                      _buildTextField("Telefone", parada.telefone),
+                      _buildTextField("Informação da Carga", parada.infoCarga, maxLines: 2),
+                    ],
                   ),
                 );
               },
             ),
 
-            Align(
-              alignment: Alignment.centerRight,
-              child: FloatingActionButton.small(
-                backgroundColor: Colors.yellow[700],
-                child: Icon(Icons.add, color: Colors.black),
-                onPressed: () => setState(() => listaParadas.add(ParadaModel())),
-              ),
-            ),
-            
-            Divider(thickness: 2),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
+            const Divider(thickness: 1, color: Colors.black12),
+            const SizedBox(height: 20),
 
-            _buildTextField("Quant total da carga:", cargaTotalController),
-            _buildTextField("Tempo estimado:", tempoController),
-            _buildTextField("Total km:", totalKmController, isNumber: true),
-            _buildTextField("Valor a pagar motorista:", valorMotoristaController, isNumber: true),
-            _buildTextField("Valor gasto caminhão:", valorCaminhaoController, isNumber: true),
-            _buildTextField("Valor a cobrar da entrega:", valorCobrarController, isNumber: true),
+            const Text("Valores e Resumo", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0F265C))),
+            const SizedBox(height: 16),
 
-            SizedBox(height: 30),
+            _buildTextField("Quantidade total da carga", cargaTotalController, hint: "Ex: 1500 kg"),
+            _buildTextField("Tempo estimado", tempoController, hint: "Ex: 4 horas"),
+            _buildTextField("Total (km)", totalKmController, isNumber: true),
+            _buildTextField("Valor a pagar ao motorista", valorMotoristaController, isNumber: true, hint: "R\$"),
+            _buildTextField("Valor gasto com o caminhão", valorCaminhaoController, isNumber: true, hint: "R\$"),
+            _buildTextField("Valor a cobrar da entrega", valorCobrarController, isNumber: true, hint: "R\$"),
 
-            Center(
+            const SizedBox(height: 40),
+
+            SizedBox(
+              width: double.infinity,
+              height: 56,
               child: _isLoading 
-                ? CircularProgressIndicator() 
+                ? const Center(child: CircularProgressIndicator()) 
                 : ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.yellow[400],
-                      padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
+                      backgroundColor: Color(0xFF00214B),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
                     ),
                     onPressed: salvarRotaEParadas,
-                    child: Text("Salvar e enviar rota", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                    child: const Text("Salvar e Enviar Rota", style: TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontWeight: FontWeight.bold, fontSize: 16)),
                   ),
             ),
-            SizedBox(height: 40),
+            const SizedBox(height: 60),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool isNumber = false}) {
+  // ==========================================
+  // COMPONENTE: INPUT PADRÃO MODERNIZADO
+  // ==========================================
+  Widget _buildTextField(String label, TextEditingController controller, {bool isNumber = false, String hint = "", int maxLines = 1}) {
     return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
+      padding: const EdgeInsets.only(bottom: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: 14)),
+          Text(
+            label, 
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)
+          ),
+          const SizedBox(height: 8),
           TextField(
             controller: controller,
-            keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-            decoration: _inputDeco(""),
+            maxLines: maxLines,
+            keyboardType: isNumber ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
+            decoration: _inputDeco(hint),
           ),
         ],
       ),
     );
   }
 
+  // Decoração padrão para os Inputs
   InputDecoration _inputDeco(String hint) {
     return InputDecoration(
       hintText: hint,
+      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
       filled: true,
-      fillColor: Colors.grey[300],
-      isDense: true,
-      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide.none,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF0F265C), width: 1.5),
       ),
     );
   }

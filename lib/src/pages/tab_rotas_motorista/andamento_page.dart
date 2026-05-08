@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'concluir_parada_page.dart';
 
@@ -212,71 +212,10 @@ class _AndamentoTabState extends State<AndamentoTab> {
     );
   }
 
-  // Constrói o visual completo da rota com os cards extras abaixo
+  // Constrói o visual unificado: Info da Rota + Paradas + Botão Concluir
   Widget _buildRotaCompleta(Map<String, dynamic> rota) {
-    return Column(
-      children: [
-        _buildNovoRotaCard(rota),
-        const SizedBox(height: 16),
-        
-        // Cards de Combustível e Pausa Legal
-        Row(
-          children: [
-            Expanded(
-              child: _buildInfoCardExtra(
-                icon: Icons.local_gas_station_outlined,
-                title: 'Combustível',
-                value: '82%',
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildInfoCardExtra(
-                icon: Icons.access_time,
-                title: 'Pausa Legal',
-                value: '02:15h',
-              ),
-            ),
-          ],
-        ),
-        
-        const SizedBox(height: 24),
-
-        // 📍 Paradas (Mantido funcional)
-        FutureBuilder<List<Map<String, dynamic>>>(
-          future: _buscarParadas(rota['id']),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) return const SizedBox.shrink();
-            final paradas = snapshot.data ?? [];
-            if (paradas.isEmpty) return const SizedBox.shrink();
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12, left: 4),
-                  child: Text(
-                    'Paradas da Rota',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: _darkBlue,
-                    ),
-                  ),
-                ),
-                ...paradas.map((parada) => _buildParadaCard(parada, rota['id'])).toList(),
-              ],
-            );
-          },
-        ),
-        const SizedBox(height: 30),
-      ],
-    );
-  }
-
-  // O Card Principal com Design Atualizado
-  Widget _buildNovoRotaCard(Map<String, dynamic> rota) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 24), // Espaçamento entre as rotas
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -288,31 +227,45 @@ class _AndamentoTabState extends State<AndamentoTab> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 🗺️ MAPA SUPERIOR (Substitua o Container pela imagem real do mapa se tiver)
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: Container(
-                  height: 140,
-                  width: double.infinity,
-                  color: Colors.grey[300], // Cor de fundo temporária
-                  child: Image.network(
-                    'https://static.vecteezy.com/system/resources/previews/000/153/588/original/vector-road-map.jpg',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => 
-                      const Center(child: Icon(Icons.map, size: 50, color: Colors.white)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 🎯 Título e Badge "Em Rota"
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        rota['descricao'] ?? 'Sem descrição',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          color: _darkBlue,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      FutureBuilder<String>(
+                        future: _buscarNomeVeiculo(rota['veiculo_id']),
+                        builder: (context, snapshot) {
+                          return Text(
+                            snapshot.data ?? 'Carregando...',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: _greyText,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              // Badge "Em Rota"
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Container(
+                Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: _darkBlue,
@@ -327,132 +280,82 @@ class _AndamentoTabState extends State<AndamentoTab> {
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 🎯 Título e Ícone Lateral
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            rota['descricao'] ?? 'Sem descrição',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w600,
-                              color: _darkBlue,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          FutureBuilder<String>(
-                            future: _buscarNomeVeiculo(rota['veiculo_id']),
-                            builder: (context, snapshot) {
-                              return Text(
-                                snapshot.data ?? 'Carregando...',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: _greyText,
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: _lightBlueCard,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.route, color: _darkBlue),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 24),
-
-                // 📊 Informações da Rota (Tempo, Distância, Carga)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildStatColumn("TEMPO EST.", rota['tempo_estimado']?.toString() ?? '-'),
-                    _buildStatColumn("DISTÂNCIA", "${rota['total_km']?.toString() ?? '-'} km"),
-                    _buildStatColumn("CARGA", "${rota['carga_total']?.toString() ?? '-'} t"),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                // 🟡 Botão Concluir Rota
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _yellowButton,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () => _concluirRota(rota['id']),
-                    icon: const Icon(Icons.check_circle_outline, color: Colors.black),
-                    label: const Text(
-                      'Rota concluída',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
+            
+            const SizedBox(height: 24),
 
-  // Widget das informações extra (Combustível / Pausa Legal)
-  Widget _buildInfoCardExtra({required IconData icon, required String title, required String value}) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _lightBlueCard,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: _darkBlue, size: 28),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: TextStyle(fontSize: 13, color: _greyText),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: _darkBlue,
+            // 📊 Informações da Rota (Tempo, Distância, Carga)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildStatColumn("TEMPO EST.", rota['tempo_estimado']?.toString() ?? '-'),
+                _buildStatColumn("DISTÂNCIA", "${rota['total_km']?.toString() ?? '-'} km"),
+                _buildStatColumn("CARGA", "${rota['carga_total']?.toString() ?? '-'} t"),
+              ],
             ),
-          ),
-        ],
+
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 16),
+
+            // 📍 Paradas embutidas no Card
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: _buscarParadas(rota['id']),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                final paradas = snapshot.data ?? [];
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (paradas.isNotEmpty) ...[
+                      Text(
+                        'Paradas da Rota',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: _darkBlue,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ...paradas.map((parada) => _buildParadaCard(parada, rota['id'])).toList(),
+                    ] else ...[
+                      const Text('Nenhuma parada encontrada.', style: TextStyle(color: Colors.grey)),
+                    ],
+                  ],
+                );
+              },
+            ),
+
+            const SizedBox(height: 24),
+
+            // 🟡 Botão Concluir Rota no final de tudo
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF00214B),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () => _concluirRota(rota['id']),
+                icon: const Icon(Icons.check_circle_outline, color: Colors.white),
+                label: const Text(
+                  'Rota concluída',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -485,7 +388,7 @@ class _AndamentoTabState extends State<AndamentoTab> {
   }
 
   // ==========================================
-  // PARADA CARD (Lógica mantida, design levemente adaptado)
+  // PARADA CARD
   // ==========================================
   Widget _buildParadaCard(Map<String, dynamic> parada, int rotaId) {
     bool isConcluida = parada['status'] == 'concluido';
@@ -499,15 +402,8 @@ class _AndamentoTabState extends State<AndamentoTab> {
             ? Colors.red[50]
             : isConcluida
                 ? Colors.green[50]
-                : Colors.white,
+                : _lightBlueCard, // Alterei a cor base para destacar dentro do card principal
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

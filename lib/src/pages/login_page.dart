@@ -1,4 +1,4 @@
-import 'package:app_mobile/src/pages/rotasGerente_page.dart';
+﻿import 'package:app_mobile/src/pages/rotasGerente_page.dart';
 import 'package:app_mobile/src/pages/rotasMotorista_page.dart';
 import 'package:flutter/material.dart';
 import '../../data/repository/auth_repository.dart';
@@ -95,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: 60), // Espaçamento superior para compensar a retirada do header
+              SizedBox(height: 100), // Espaçamento superior para compensar a retirada do header
 
               // 🖼️ LOGO (Tamanho Aumentado)
               Image.asset(
@@ -103,37 +103,14 @@ class _LoginPageState extends State<LoginPage> {
                 height: 200, // <-- AUMENTEI O TAMANHO AQUI
               ),
 
-              SizedBox(height: 30),
+          
 
               // 📝 TÍTULO
-              Text(
-                'Seja\nBem-vindo',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: primaryColor,
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                  height: 1.2,
-                ),
-              ),
-
-              SizedBox(height: 15),
+             
 
               // 📝 SUBTÍTULO
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: Text(
-                  'Acesse sua conta para gerenciar suas\nentregas e rotas.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: greyTextColor,
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 35),
+             
+              SizedBox(height: 5),
 
               // 🗂️ CARD DO FORMULÁRIO
               Padding(

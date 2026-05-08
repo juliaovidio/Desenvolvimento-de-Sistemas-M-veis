@@ -1,6 +1,6 @@
-import 'package:app_mobile/src/pages/tab_rotas_motorista/detalhes_parada_finalizada_page.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'detalhes_parada_finalizado_page.dart';
 
 class FinalizadoTab extends StatefulWidget {
   final int autorId;
@@ -26,23 +26,6 @@ class _FinalizadoTabState extends State<FinalizadoTab> {
   void initState() {
     super.initState();
     _carregarRotasFinalizadas();
-  }
-
-  // ==========================================
-  // FORMATAR DATA (Ex: 24 OUT 2023)
-  // ==========================================
-  String _formatarData(String? dataString) {
-    if (dataString == null || dataString.isEmpty) return '';
-    try {
-      DateTime data = DateTime.parse(dataString);
-      List<String> meses = [
-        'JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN',
-        'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'
-      ];
-      return '${data.day.toString().padLeft(2, '0')} ${meses[data.month - 1]} ${data.year}';
-    } catch (e) {
-      return dataString.substring(0, 10);
-    }
   }
 
   // ==========================================
@@ -82,6 +65,22 @@ class _FinalizadoTabState extends State<FinalizadoTab> {
   }
 
   // ==========================================
+  // BUSCAR NOME DO VEÍCULO
+  // ==========================================
+  Future<String> _buscarNomeVeiculo(int veiculoId) async {
+    try {
+      final response = await supabase
+          .from('veiculos')
+          .select('descricao')
+          .eq('id', veiculoId)
+          .single();
+      return response['descricao'] ?? 'Veículo desconhecido';
+    } catch (e) {
+      return 'Veículo desconhecido';
+    }
+  }
+
+  // ==========================================
   // BUSCAR PARADAS DE UMA ROTA
   // ==========================================
   Future<List<Map<String, dynamic>>> _buscarParadas(int rotaId) async {
@@ -99,7 +98,7 @@ class _FinalizadoTabState extends State<FinalizadoTab> {
   }
 
   // ==========================================
-  // INTERFACE PRINCIPAL
+  // INTERFACE
   // ==========================================
   @override
   Widget build(BuildContext context) {
@@ -107,223 +106,118 @@ class _FinalizadoTabState extends State<FinalizadoTab> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Container(
-      color: const Color(0xFFF4F6F8), // Fundo cinza bem claro do app
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: _buildSearchBar(),
-            ),
-          ),
-          if (rotas.isEmpty)
-            const SliverFillRemaining(
-              child: Center(
-                child: Text(
-                  'Nenhuma rota finalizada',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-              ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildRotaCard(rotas[index]),
-                  childCount: rotas.length,
-                ),
-              ),
-            ),
-        ],
+    if (rotas.isEmpty) {
+      return const Center(
+        child: Text(
+          'Nenhuma rota finalizada',
+          style: TextStyle(fontSize: 16, color: Colors.grey),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: rotas.map((rota) {
+          return _buildRotaCard(rota);
+        }).toList(),
       ),
     );
   }
 
-  // ==========================================
-  // BARRA DE PESQUISA (TOPO)
-  // ==========================================
-  Widget _buildSearchBar() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Buscar por placa ou rota...',
-                hintStyle: TextStyle(color: Colors.grey.shade500),
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Container(
-          height: 48,
-          width: 48,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.filter_list, color: Colors.black87),
-            onPressed: () {
-              // Ação do filtro
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ==========================================
-  // CARD PRINCIPAL DA ROTA
-  // ==========================================
   Widget _buildRotaCard(Map<String, dynamic> rota) {
     return Card(
-      elevation: 0,
-      color: Colors.white,
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
+      margin: const EdgeInsets.only(bottom: 20),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🎯 Título da Rota e Badge Finalizado
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    rota['descricao'] ?? 'Sem descrição',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.black87,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    'Finalizado',
-                    style: TextStyle(
-                      color: Colors.blue.shade700,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
+            // 🎯 Título da Rota
+            Text(
+              rota['descricao'] ?? 'Sem descrição',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
 
-            // 📅 Data finalizada
-            Row(
-              children: [
-                Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey.shade500),
-                const SizedBox(width: 6),
-                Text(
-                  _formatarData(rota['finalizada_em']),
+            // 🚗 Nome do Veículo
+            FutureBuilder<String>(
+              future: _buscarNomeVeiculo(rota['veiculo_id']),
+              builder: (context, snapshot) {
+                return Text(
+                  snapshot.data ?? 'Carregando...',
                   style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                    color: Colors.grey[700],
                   ),
-                ),
-              ],
+                );
+              },
             ),
-            const SizedBox(height: 16),
 
-            // 📊 Informações da Rota (3 Colunas)
+            const SizedBox(height: 12),
+
+            // 📊 Informações da Rota
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                border: Border.symmetric(
-                  horizontal: BorderSide(color: Colors.grey.shade100, width: 1.5),
-                ),
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: IntrinsicHeight(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildEstatisticaColuna(
-                      Icons.access_time_outlined,
-                      "Tempo",
-                      rota['tempo_estimado']?.toString() ?? '-',
-                    ),
-                    VerticalDivider(color: Colors.grey.shade200, thickness: 1),
-                    _buildEstatisticaColuna(
-                      Icons.route_outlined,
-                      "Distância",
-                      rota['total_km']?.toString() ?? '-',
-                    ),
-                    VerticalDivider(color: Colors.grey.shade200, thickness: 1),
-                    _buildEstatisticaColuna(
-                      Icons.shopping_bag_outlined,
-                      "Carga",
-                      rota['carga_total']?.toString() ?? '-',
-                    ),
-                  ],
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoRow(
+                    "Tempo estimado:",
+                    rota['tempo_estimado']?.toString() ?? '-',
+                  ),
+                  _buildInfoRow(
+                    "Total km:",
+                    rota['total_km']?.toString() ?? '-',
+                  ),
+                  _buildInfoRow(
+                    "Carga total:",
+                    rota['carga_total']?.toString() ?? '-',
+                  ),
+                ],
               ),
             ),
+
             const SizedBox(height: 16),
 
-            // 📍 Lista de Paradas
+            // 🛑 Separador
+            const Divider(thickness: 1),
+            const SizedBox(height: 12),
+
+            // 📍 Paradas
             FutureBuilder<List<Map<String, dynamic>>>(
               future: _buscarParadas(rota['id']),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return const Center(child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ));
+                  return const Center(child: CircularProgressIndicator());
                 }
 
                 final paradas = snapshot.data ?? [];
 
                 return Column(
                   children: paradas.map((parada) {
-                    return _buildParadaItem(parada);
+                    return _buildParadaCard(parada);
                   }).toList(),
                 );
               },
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
 
             // 🔽 Botão Ver Mais
             Center(
               child: TextButton(
                 onPressed: () => _mostrarDetalhesRota(rota),
-                child: Text(
+                child: const Text(
                   'Ver mais +',
-                  style: TextStyle(
-                    color: Colors.blue.shade700,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(color: Colors.blue),
                 ),
               ),
             ),
@@ -333,98 +227,123 @@ class _FinalizadoTabState extends State<FinalizadoTab> {
     );
   }
 
-  // Widget Auxiliar para as 3 colunas de info
-  Widget _buildEstatisticaColuna(IconData icon, String label, String value) {
-    return Column(
-      children: [
-        Icon(icon, color: Colors.blue.shade700, size: 24),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 16, color: Colors.black87),
-        ),
-      ],
-    );
-  }
-
-  // ==========================================
-  // ITEM DA PARADA (SUCESSO / FALHA)
-  // ==========================================
-  Widget _buildParadaItem(Map<String, dynamic> parada) {
+  Widget _buildParadaCard(Map<String, dynamic> parada) {
+    bool isConcluida = parada['status'] == 'concluido';
     bool temFalha = parada['status'] == 'falha entrega';
-    bool isConcluida = parada['status'] == 'concluido' || !temFalha; // Assume sucesso se não for falha para o visual da foto
-
-    // Cores baseadas no status
-    Color bgColor = temFalha ? const Color(0xFFFFF4F4) : const Color(0xFFF2FDF5);
-    Color borderColor = temFalha ? const Color(0xFFFFEAEA) : const Color(0xFFE8F8EE);
-    Color iconBgColor = temFalha ? const Color(0xFFFFE0E0) : const Color(0xFFDDF5E6);
-    Color iconColor = temFalha ? const Color(0xFFE53935) : const Color(0xFF43A047);
-    IconData iconData = temFalha ? Icons.close : Icons.check;
-    String statusTexto = temFalha ? 'Falha na entrega' : 'Concluída';
-
-    // Montar um titulo provisorio baseado na cidade/rua pra ficar parecido com o "ghy - jj" da foto
-    String titulo = '${parada['cidade'] ?? 'Parada'} - ${parada['uf'] ?? parada['ordem']}';
 
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => DetalheParadaFinalizadoPage(parada: parada),
+          builder: (_) => DetalheParadaFinalizadoPage(
+            parada: parada,
+          ),
         ),
       ),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: bgColor,
-          border: Border.all(color: borderColor),
-          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: temFalha
+                ? Colors.red[300]!
+                : isConcluida
+                    ? Colors.green[300]!
+                    : Colors.grey[300]!,
+            width: temFalha || isConcluida ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(8),
+          color: temFalha
+              ? Colors.red[50]
+              : isConcluida
+                  ? Colors.green[50]
+                  : Colors.white,
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Ícone circular (X vermelho ou Check verde)
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: iconBgColor,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(iconData, color: iconColor, size: 18),
-            ),
-            const SizedBox(width: 16),
-            
-            // Textos
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    titulo,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: Colors.black87,
-                    ),
+            // 📍 Número da Parada + Cidade + Rua
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Número em destaque
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: temFalha
+                        ? Colors.red[400]
+                        : isConcluida
+                            ? Colors.green[400]
+                            : Colors.yellow[400],
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    statusTexto,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: iconColor,
-                    ),
+                  child: Center(
+                    child: temFalha
+                        ? const Icon(Icons.close, color: Colors.white)
+                        : isConcluida
+                            ? const Icon(Icons.check, color: Colors.white)
+                            : Text(
+                                '${parada['ordem']}°',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${parada['cidade'] ?? '-'} - ${parada['uf'] ?? '-'}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '${parada['rua'] ?? '-'}, ${parada['numero'] ?? '-'}',
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                      Text(
+                        '${parada['bairro'] ?? '-'} - ${parada['cep'] ?? '-'}',
+                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                      ),
+                      // Status
+                      if (temFalha)
+                        Text(
+                          '❌ Falha na entrega',
+                          style: TextStyle(
+                            color: Colors.red[600],
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      if (isConcluida)
+                        Text(
+                          '✅ Concluída',
+                          style: TextStyle(
+                            color: Colors.green[600],
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
 
-            // Seta para direita
-            Icon(Icons.chevron_right, color: Colors.grey.shade400),
+            const SizedBox(height: 8),
+
+            // Separador
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Container(
+                height: 1,
+                color: Colors.grey[300],
+              ),
+            ),
           ],
         ),
       ),
@@ -437,42 +356,54 @@ class _FinalizadoTabState extends State<FinalizadoTab> {
   void _mostrarDetalhesRota(Map<String, dynamic> rota) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
             children: [
+              // 📍 Título
               Text(
                 rota['descricao'] ?? '-',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 24),
+
+              const SizedBox(height: 20),
+
+              // 📋 Informações
               _buildDetalhesRow('Tempo estimado:', rota['tempo_estimado']?.toString() ?? '-'),
               _buildDetalhesRow('Total km:', rota['total_km']?.toString() ?? '-'),
               _buildDetalhesRow('Carga total:', rota['carga_total']?.toString() ?? '-'),
               _buildDetalhesRow('Status:', rota['status'] ?? '-'),
+
               const SizedBox(height: 16),
-              const Divider(thickness: 1),
+              const Divider(thickness: 2),
               const SizedBox(height: 16),
-              _buildDetalhesRow('Criada em:', _formatarData(rota['criada_em'])),
-              _buildDetalhesRow('Iniciada em:', _formatarData(rota['iniciada_em'])),
-              _buildDetalhesRow('Finalizada em:', _formatarData(rota['finalizada_em'])),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
+
+              // 📅 Datas
+              _buildDetalhesRow(
+                'Criada em:',
+                rota['criada_em']?.substring(0, 10) ?? '-',
+              ),
+              _buildDetalhesRow(
+                'Iniciada em:',
+                rota['iniciada_em']?.substring(0, 10) ?? '-',
+              ),
+              _buildDetalhesRow(
+                'Finalizada em:',
+                rota['finalizada_em']?.substring(0, 10) ?? '-',
+              ),
+
+              const SizedBox(height: 20),
+
+              // ✅ Botão Fechar
+              Center(
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade700,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Fechar', style: TextStyle(color: Colors.white, fontSize: 16)),
+                  child: const Text('Fechar'),
                 ),
               ),
             ],
@@ -492,15 +423,25 @@ class _FinalizadoTabState extends State<FinalizadoTab> {
             width: 130,
             child: Text(
               label,
-              style: TextStyle(fontWeight: FontWeight.w500, color: Colors.grey.shade700),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(
-            child: Text(
-              valor,
-              style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black87),
-            ),
+            child: Text(valor),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String valor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+          Text(valor),
         ],
       ),
     );

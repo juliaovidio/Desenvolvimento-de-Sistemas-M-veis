@@ -1,4 +1,4 @@
-// ignore: file_names
+﻿// ignore: file_names
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -7,10 +7,12 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../layout/main_layout.dart';
 
+
 class ReportarProblemaPage extends StatefulWidget {
   final String cargo;
   final String nome;
   final int autorId;
+
 
   const ReportarProblemaPage({
     super.key,
@@ -19,23 +21,29 @@ class ReportarProblemaPage extends StatefulWidget {
     required this.autorId,
   });
 
+
   @override
   State<ReportarProblemaPage> createState() => _ReportarProblemaPageState();
 }
 
+
 class _ReportarProblemaPageState extends State<ReportarProblemaPage> {
   final supabase = Supabase.instance.client;
 
+
   // Aba inicial baseada no design
   String abaSelecionada = "adicionar";
+
 
   List relatos = [];
   XFile? imagemSelecionada;
   bool isLoading = false;
 
+
   // Controllers dos campos
   final tituloCtrl = TextEditingController();
   final descricaoCtrl = TextEditingController();
+
 
   // 🔥 CORES DO DESIGN FIEL
   final Color primaryDarkBlue = const Color(0xFF04122E);
@@ -44,15 +52,18 @@ class _ReportarProblemaPageState extends State<ReportarProblemaPage> {
   final Color placeholderColor = const Color(0xFFE9EDF2);
   final Color lightBluePill = const Color(0xFFF0F4FC);
 
+
   @override
   void initState() {
     super.initState();
     carregarRelatos();
   }
 
+
   // =============================
   // 🔥 BANCO DE DADOS
   // =============================
+
 
   Future<void> carregarRelatos() async {
     final response = await supabase
@@ -60,17 +71,21 @@ class _ReportarProblemaPageState extends State<ReportarProblemaPage> {
         .select()
         .order('criado_em', ascending: false);
 
+
     setState(() {
       relatos = response;
     });
   }
 
+
   // =============================
   // 📷 CÂMERA
   // =============================
 
+
   Future<void> tirarFoto() async {
     final status = await Permission.camera.request();
+
 
     if (!status.isGranted) {
       if (mounted) {
@@ -81,20 +96,24 @@ class _ReportarProblemaPageState extends State<ReportarProblemaPage> {
       return;
     }
 
+
     final picker = ImagePicker();
     final foto = await picker.pickImage(
       source: ImageSource.camera,
       imageQuality: 70,
     );
 
+
     if (foto != null) {
       setState(() => imagemSelecionada = foto);
     }
   }
 
+
   // =============================
   // 🔐 SALVAR RELATO
   // =============================
+
 
   Future<void> salvarRelato() async {
     if (tituloCtrl.text.isEmpty || descricaoCtrl.text.isEmpty) {
@@ -104,18 +123,23 @@ class _ReportarProblemaPageState extends State<ReportarProblemaPage> {
       return;
     }
 
+
     setState(() => isLoading = true);
+
 
     try {
       String? urlImagem;
+
 
       if (imagemSelecionada != null) {
         final bytes = await imagemSelecionada!.readAsBytes();
         final fileName = 'relato_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
+
         await supabase.storage.from('relatos').uploadBinary(fileName, bytes);
         urlImagem = supabase.storage.from('relatos').getPublicUrl(fileName);
       }
+
 
       await supabase.from('relatos_problema').insert({
         'titulo': tituloCtrl.text,
@@ -125,11 +149,13 @@ class _ReportarProblemaPageState extends State<ReportarProblemaPage> {
         'criado_em': DateTime.now().toIso8601String(),
       });
 
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Relato salvo com sucesso!")),
         );
       }
+
 
       limparCampos();
       await carregarRelatos();
@@ -146,18 +172,22 @@ class _ReportarProblemaPageState extends State<ReportarProblemaPage> {
     }
   }
 
+
   void limparCampos() {
     tituloCtrl.clear();
     descricaoCtrl.clear();
     setState(() => imagemSelecionada = null);
   }
 
+
   // =============================
   // UI WIDGETS (VISUAL FIEL)
   // =============================
 
+
   Widget abaPersonalizada(String titulo, IconData icone, String valor) {
     final ativo = abaSelecionada == valor;
+
 
     return GestureDetector(
       onTap: () {
@@ -189,6 +219,7 @@ class _ReportarProblemaPageState extends State<ReportarProblemaPage> {
       ),
     );
   }
+
 
   Widget campoPersonalizado(String titulo, String hint, TextEditingController ctrl, {int maxLines = 1}) {
     return Column(
@@ -222,12 +253,14 @@ class _ReportarProblemaPageState extends State<ReportarProblemaPage> {
     );
   }
 
+
   Widget cardRelato(Map f) {
     String dataFormatada = "";
     if (f['criado_em'] != null) {
       DateTime data = DateTime.parse(f['criado_em']);
       dataFormatada = "${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year} ${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}";
     }
+
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -309,6 +342,7 @@ class _ReportarProblemaPageState extends State<ReportarProblemaPage> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     return MainLayout(
@@ -378,24 +412,29 @@ class _ReportarProblemaPageState extends State<ReportarProblemaPage> {
                             ),
                             const SizedBox(height: 24),
 
+
                             // Formulário
                             campoPersonalizado("Título do Problema", "Ex: Pneu furado, Atraso na carga...", tituloCtrl),
                             campoPersonalizado("Descrição do Problema", "Descreva detalhadamente o ocorrido...", descricaoCtrl, maxLines: 4),
 
+
                             const SizedBox(height: 8),
 
-                            // Botão Salvar
-                            SizedBox(
+
+                          SizedBox(
                               width: double.infinity,
                               height: 56,
+                              // SOLUÇÃO: Aqui o ElevatedButton não estava dentro de um Row pelo que vi, o problema deveria estar no _cardRelato (onde a lista é exibida)
                               child: ElevatedButton.icon(
                                 onPressed: isLoading ? null : salvarRelato,
-                                icon: isLoading 
+                                icon: isLoading
                                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                                   : const Icon(Icons.save_outlined, color: Colors.white),
                                 label: Text(
                                   isLoading ? "Salvando..." : "Salvar Relato",
                                   style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
+                                  // SOLUÇÃO: Limitar o overflow no botão também, por segurança
+                                  overflow: TextOverflow.ellipsis, 
                                 ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: primaryDarkBlue,
@@ -418,23 +457,10 @@ class _ReportarProblemaPageState extends State<ReportarProblemaPage> {
                           ),
               ),
 
+
               // ================= FAB (ROBÔ/BRILHO) =================
-              Positioned(
-                bottom: 100,
-                right: 20,
-                child: SizedBox(
-                  width: 56,
-                  height: 56,
-                  child: FloatingActionButton(
-                    backgroundColor: primaryDarkBlue,
-                    elevation: 4,
-                    highlightElevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                    onPressed: () {}, // Ação do FAB
-                    child: const Icon(Icons.auto_awesome, color: Colors.white, size: 28),
-                  ),
-                ),
-              ),
+             
+
 
               // ================= BARRA INFERIOR (TABS) =================
               Align(
@@ -464,6 +490,7 @@ class _ReportarProblemaPageState extends State<ReportarProblemaPage> {
   }
 }
 
+
 // ==========================================
 // PAINTER PARA CRIAR A BORDA TRACEJADA FIEL
 // ==========================================
@@ -472,7 +499,9 @@ class DashedRectPainter extends CustomPainter {
   final double strokeWidth;
   final double gap;
 
+
   DashedRectPainter({required this.color, required this.strokeWidth, required this.gap});
+
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -481,11 +510,14 @@ class DashedRectPainter extends CustomPainter {
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
 
+
     final Path path = Path();
     final double radius = 16.0;
 
+
     // Retângulo base arredondado
     path.addRRect(RRect.fromRectAndRadius(Rect.fromLTWH(0, 0, size.width, size.height), Radius.circular(radius)));
+
 
     // Efeito Tracejado
     Path dashPath = Path();
@@ -498,9 +530,12 @@ class DashedRectPainter extends CustomPainter {
       distance = 0.0;
     }
 
+
     canvas.drawPath(dashPath, paint);
   }
+
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
+
