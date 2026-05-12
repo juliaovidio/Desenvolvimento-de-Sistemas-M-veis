@@ -1,9 +1,5 @@
 # Registro do Trabalho de Testes — App Mobile (Supabase + Flutter)
 
-Data: 2026-05-12  
-Repositório: juliaovidio/Desenvolvimento-de-Sistemas-M-veis  
-Escopo: Testes de UI/serviço baseados no app real (sem ViewModel)
-
 ## 1. Análise do projeto
 Foram analisados os seguintes arquivos reais do app:
 - lib/src/pages/login_page.dart
@@ -45,7 +41,4 @@ Arquivos de teste:
 ## 4. Como executar
 flutter test
 
-## 5. Observações
-- Testes não alteram o repositório.
-- Nenhum teste depende de ViewModel (não existe no projeto).
-- Uso de Supabase ficou restrito aos serviços mockados pelos testes.
+
