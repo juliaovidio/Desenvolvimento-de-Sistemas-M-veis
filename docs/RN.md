@@ -24,8 +24,8 @@ Uma rota só pode ser finalizada após todas as entregas vinculadas serem conclu
 ### RN08 – Registro de Localização Temporal:
 Toda localização enviada deve conter data e hora obrigatórias.
 
-### RN09 – Imutabilidade do Histórico:
-Os registros de histórico não podem ser editados ou excluídos após sua criação.
+### RN09 – Mutabilidade do Histórico:
+Os registros de histórico podem ser editados ou excluídos após sua criação.
 
 ### RN10 – Problema Vinculado à Entrega:
 Todo problema registrado deve estar obrigatoriamente vinculado a uma entrega.
