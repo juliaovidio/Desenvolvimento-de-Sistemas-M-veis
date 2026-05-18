@@ -21,6 +21,7 @@ Foram criados documentos no padrão ISO/IEC/IEEE 29119:
 - Documento A — Base Conceitual de Teste
 - Documento B — Processo de Teste
 - Documento C — Técnicas e Casos de Teste
+- Documento D — Relatório de Teste
 
 ## 3. Conjunto de testes criado (12 casos)
 Os testes criados cobrem:
@@ -40,5 +41,3 @@ Arquivos de teste:
 
 ## 4. Como executar
 flutter test
-
-
