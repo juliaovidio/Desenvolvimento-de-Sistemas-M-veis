@@ -1,7 +1,7 @@
 # Documento D — Relatório de Teste
-Projeto: Auth 29119 App  
+Projeto: App Mobile (Gestão de Entregas)  
 Tecnologia: Flutter  
-Arquitetura: MVVM com Provider  
+Arquitetura: Pages + Services (Supabase)  
 Norma aplicada: ISO/IEC/IEEE 29119-3  
 
 ## 1. Objetivo
@@ -12,25 +12,20 @@ Ambiente utilizado:
 - Flutter SDK
 - Dart SDK
 - flutter_test
-- integration_test
-
-Arquitetura:
-- MVVM
-- Provider
-- FakeAuthService
+- geolocator_platform_interface
+- geocoding (method channel mock)
 
 ## 3. Estrutura dos Testes Executados
 ```
 test/
-viewmodel/
-  - signup_viewmodel_test.dart
-  - login_viewmodel_test.dart
-integration_test/
-  - auth_flow_test.dart
+  - login_page_test.dart
+  - mapa_service_test.dart
+  - user_model_test.dart
+  - parada_model_criar_rota_test.dart
+  - parada_model_editar_rota_test.dart
 ```
 
 ## 4. Execução dos Testes
-Testes unitários:
 ```
 flutter test
 ```
@@ -38,63 +33,45 @@ flutter test
 ## 5. Resultados dos Testes Unitários
 | Caso | Objetivo | Resultado Esperado | Resultado Obtido | Status |
 |------|----------|--------------------|------------------|--------|
-| TC01 | Cadastro válido | Cadastro realizado | Cadastro realizado | Aprovado |
-| TC02 | Campos vazios | Mensagem de erro | Mensagem exibida | Aprovado |
-| TC03 | E-mail inválido | Mensagem de erro | Mensagem exibida | Aprovado |
-| TC04 | Cadastro duplicado | Bloqueio cadastro | Bloqueio realizado | Aprovado |
-| TC05 | Navegação login | goToLogin | goToLogin | Aprovado |
-| TC06 | Login válido | goToHome | goToHome | Aprovado |
-| TC07 | Login vazio | Mensagem de erro | Mensagem exibida | Aprovado |
-| TC08 | Login inválido | Mensagem de erro | Mensagem exibida | Aprovado |
-| TC09 | Login válido (variação) | goToHome | goToHome | Aprovado |
+| TC01 | Login com e-mail inválido | SnackBar "e-mail válido" | SnackBar exibido | Aprovado |
+| TC02 | Login com senha vazia | SnackBar "senha não pode estar vazia" | SnackBar exibido | Aprovado |
+| TC03 | Alternar visibilidade da senha | Ícone muda para visibilidade_off | Ícone alterado | Aprovado |
+| TC04 | Permissão de localização negada | obterLocalizacaoAtual() retorna null | Retornou null | Aprovado |
+| TC05 | Permissão concedida retorna Position | Retorna Position válida | Position válida | Aprovado |
+| TC06 | Geocoding com retorno válido | Endereço completo (rua/bairro/cep/cidade) | Endereço retornado | Aprovado |
+| TC07 | Geocoding vazio | Retornos com "-" | Retornos com "-" | Aprovado |
+| TC08 | Geocoding com erro | Retornos com "-" | Retornos com "-" | Aprovado |
+| TC09 | UserModel.fromJson mapeia id/cargo | id e cargo corretos | id e cargo corretos | Aprovado |
+| TC10 | UserModel.fromJson mapeia senha_hash | senhaHash igual ao json | senhaHash correto | Aprovado |
+| TC11 | ParadaModel (Criar) armazena dados | Campos com valores corretos | Valores corretos | Aprovado |
+| TC12 | ParadaModel (Editar) mantém status e campos | Valores mantidos e status correto | Valores corretos | Aprovado |
 
 ## 6. Simulação de Falha
-Foi realizada uma simulação de falha alterando propositalmente o valor esperado do teste **TC02**.
-
-**Objetivo da simulação**
-- Demonstrar o funcionamento do framework de teste
-- Evidenciar a diferença entre resultado esperado e obtido
-- Mostrar o comportamento de falhas automatizadas
-
-**Resultado da simulação**
-- Esperado pelo teste: "Preencha os campos obrigatórios."
-- Resultado obtido: "Preencha e-mail e senha."
-- **Resultado do teste:** Reprovado
+Não foi realizada simulação de falha neste conjunto de testes.
 
 ## 7. Análise dos Resultados
 Os testes unitários validaram corretamente:
-- Regras de negócio
-- Validações
-- Mensagens
-- Estados dos ViewModels
+- Regras de validação da tela de login
+- Controle de visibilidade de senha
+- Comportamento do serviço de localização
+- Conversão de dados do UserModel
+- Estruturas de dados das paradas (criar/editar)
 
 ## 8. Benefícios Observados
-A arquitetura MVVM permitiu:
-- Isolamento da lógica
-- Facilidade de teste
-- Reutilização
-- Separação entre UI e negócio
-
-A utilização de **FakeAuthService** permitiu:
-- Independência de backend real
-- Execução rápida
-- Previsibilidade dos resultados
+- Uso de mocks garantiu previsibilidade e execução rápida
+- Separação da lógica permitiu testar componentes isoladamente
 
 ## 9. Problemas Encontrados
-Nenhuma falha funcional foi encontrada durante os testes oficiais.  
-Apenas a falha simulada apresentou erro propositalmente induzido para fins didáticos.
+Nenhuma falha funcional foi encontrada durante os testes.
 
 ## 10. Conclusão Final
-Os testes executados demonstraram que o sistema atende aos requisitos funcionais definidos inicialmente.
-
-Os testes unitários validaram corretamente os ViewModels isoladamente.  
-A utilização da ISO/IEC/IEEE 29119 permitiu organizar conceitos, processo, técnicas, execução e documentação de forma estruturada e rastreável.
+Os testes executados demonstraram que o sistema atende aos requisitos funcionais definidos inicialmente, com cobertura das regras principais de login, localização e modelos de dados.
 
 ## 11. Estatísticas Finais
 | Tipo | Quantidade |
 |------|------------|
-| Testes planejados | 9 |
-| Testes executados | 9 |
-| Testes aprovados | 9 |
+| Testes planejados | 12 |
+| Testes executados | 12 |
+| Testes aprovados | 12 |
 | Testes reprovados | 0 |
-| Falhas simuladas | 1 |
+| Falhas simuladas | 0 |
