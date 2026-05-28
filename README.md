@@ -39,14 +39,9 @@ flutter pub get
 
 4. **Execute a aplicação**
 ```bash
-# Android
-flutter run -d android
 
-# iOS
-flutter run -d ios
+flutter run
 
-# Web
-flutter run -d web
 ```
 
 ## 📁 Estrutura
@@ -68,22 +63,9 @@ lib/
 flutter build apk --release
 flutter build appbundle --release
 
-# iOS
-flutter build ios --release
-
-# Web
-flutter build web --release
 ```
-
-## 🤝 Contribuir
-
-1. Faça um Fork
-2. Crie sua branch (`git checkout -b feature/nova-feature`)
-3. Commit (`git commit -m 'Add nova-feature'`)
-4. Push (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
 
 ## 👨‍💻 Autores
 
-- **Júlia Ovídio** - [@juliaovidio](https://github.com/juliaovidio)
+- **Júlia Ovídio** 
 - **Júlia Docema**
