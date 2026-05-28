@@ -11,15 +11,6 @@ Aplicação móvel multiplataforma desenvolvida com **Flutter** e **Dart**.
 - ✅ Validação avançada de formulários
 - 🔍 Busca inteligente com sugestões
 
-## 🛠️ Tecnologias
-
-| Tecnologia | Versão |
-|-----------|--------|
-| **Flutter** | 3.11+ |
-| **Dart** | 3.11+ |
-| **Supabase** | 2.12.2 |
-| **Google Maps** | 2.4.0 |
-
 ## 🚀 Instalação
 
 ### Pré-requisitos
